@@ -1,0 +1,39 @@
+# Maven
+target/
+!target/*.jar
+!target/demo-0.0.1-SNAPSHOT.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# Test
+src/test/
+
+# Temporary files
+*.tmp
+*.temp 

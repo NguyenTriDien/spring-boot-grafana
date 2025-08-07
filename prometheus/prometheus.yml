@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+# - "first_rules.yml"
+# - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus tự monitor chính nó
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Spring Boot Application
+  - job_name: 'spring-boot-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['app:8080']
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Node Exporter để thu thập RAM, CPU, Disk...
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # MySQL Exporter để thu thập thông tin từ MySQL
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysqld-exporter:9104']

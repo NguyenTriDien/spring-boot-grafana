@@ -1,0 +1,11 @@
+version: 2
+authtoken: 1zgEY5cwCbg3ahn09cRoSNRxsyB_3EYednj4MMZ98nVUHFLp8
+region: ap
+
+tunnels:
+  springboot:
+    proto: http
+    addr: app:8080
+  grafana:
+    proto: http
+    addr: grafana:3000
