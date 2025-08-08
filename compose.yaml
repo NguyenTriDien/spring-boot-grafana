@@ -1,4 +1,4 @@
-version: '3.8'
+version: '2.4'
 
 services:
   mysql:
@@ -21,6 +21,9 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
+    mem_limit: 2g           # RAM tối đa 1GB
+    memswap_limit: 2g       # Không cho dùng swap
+    cpus: 2               # Tối đa 1.5 CPU core
 
   app:
     build: .
@@ -38,8 +41,6 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: always
-
-      # Datadog APM settings
       DD_AGENT_HOST: datadog
       DD_ENV: local
       DD_SERVICE: springboot-demo
@@ -60,6 +61,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    mem_limit: 4g           # RAM tối đa 2GB
+    memswap_limit: 4g       # Không cho dùng swap
+    cpus: 4                 # Tối đa 2 CPU core
 
   datadog:
     image: gcr.io/datadoghq/agent:7
@@ -170,6 +174,20 @@ services:
       - demo-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "mysql"]
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080" # UI cAdvisor nếu muốn xem trực tiếp
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    networks:
+      - demo-network
 
 volumes:
   mysql_data:
