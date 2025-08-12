@@ -50,10 +50,8 @@ Content-Type: application/json
 {
     "name": "Tên sản phẩm",
     "description": "Mô tả sản phẩm",
-    "price": 100000.00,
-    "stockQuantity": 50,
-    "category": "Điện tử",
-    "imageUrl": "https://example.com/image.jpg"
+    "price": 100000.00
+   
 }
 ```
 
