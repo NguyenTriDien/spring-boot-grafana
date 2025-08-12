@@ -113,20 +113,20 @@ services:
     networks:
       - demo-network
 
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: demo-ngrok
-    restart: unless-stopped
-    volumes:
-      - ./ngrok.yml:/etc/ngrok/ngrok.yml:ro
-    command: start --all --config /etc/ngrok/ngrok.yml
-    depends_on:
-      - app
-      - grafana
-    ports:
-      - "4040:4040"
-    networks:
-      - demo-network
+#  ngrok:
+#    image: ngrok/ngrok:latest
+#    container_name: demo-ngrok
+#    restart: unless-stopped
+#    volumes:
+#      - ./ngrok.yml:/etc/ngrok/ngrok.yml:ro
+#    command: start --all --config /etc/ngrok/ngrok.yml
+#    depends_on:
+#      - app
+#      - grafana
+#    ports:
+#      - "4040:4040"
+#    networks:
+#      - demo-network
 
   mysqld-exporter:
     image: prom/mysqld-exporter:latest
