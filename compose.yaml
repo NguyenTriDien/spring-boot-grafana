@@ -41,18 +41,9 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: always
-#      DD_AGENT_HOST: datadog
-#      DD_ENV: local
-#      DD_SERVICE: springboot-demo
-#      DD_VERSION: 1.0
-#      JAVA_TOOL_OPTIONS: -javaagent:/app/dd-java-agent.jar
     depends_on:
       mysql:
         condition: service_healthy
-#      datadog:
-#        condition: service_started
-#    volumes:
-#      - ./dd-java-agent.jar:/app/dd-java-agent.jar
     networks:
       - demo-network
     healthcheck:
@@ -64,27 +55,6 @@ services:
     mem_limit: 4g           # RAM tối đa 2GB
     memswap_limit: 4g       # Không cho dùng swap
     cpus: 4                 # Tối đa 2 CPU core
-
-#  datadog:
-#    image: gcr.io/datadoghq/agent:7
-#    container_name: dd-agent
-#    restart: unless-stopped
-#    env_file:
-#      - .env
-#    environment:
-#      DD_API_KEY: 894979e8dbc16dd4ae807c38483f9003
-#      DD_SITE: datadoghq.com
-#      DD_APM_ENABLED: "true"
-#      DD_LOGS_ENABLED: "true"
-#      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
-#      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#      - /proc/:/host/proc/:ro
-#      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
-#      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-#    networks:
-#      - demo-network
 
   prometheus:
     image: prom/prometheus:latest
