@@ -9,4 +9,14 @@ providers:
     updateIntervalSeconds: 10
     allowUiUpdates: true
     options:
-      path: /var/lib/grafana/dashboards 
+      path: /var/lib/grafana/dashboards
+#
+#  - name: 'Redis Dashboards'
+#    orgId: 1
+#    folder: 'Redis Dashboards'
+#    type: file
+#    disableDeletion: false
+#    updateIntervalSeconds: 10
+#    allowUiUpdates: true
+#    options:
+#      path: /var/lib/grafana/dashboards

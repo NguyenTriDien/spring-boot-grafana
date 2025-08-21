@@ -4,10 +4,10 @@ import com.example.learnperformancetest.dto.ProductDto;
 import com.example.learnperformancetest.request.ProductRequest;
 import com.example.learnperformancetest.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -38,7 +38,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductDto>> getAll() {
-        return ResponseEntity.ok(productService.getAll());
+    public ResponseEntity<Page<ProductDto>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(productService.getAll(pageable));
     }
 }
