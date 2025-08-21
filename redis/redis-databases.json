@@ -1,0 +1,12 @@
+[
+  {
+    "name": "demo-redis",
+    "host": "redis",
+    "port": 6379,
+    "username": "",
+    "password": "",
+    "tls": false,
+    "read_only": false,
+    "ssh": null
+  }
+]

@@ -34,6 +34,7 @@ services:
     command: redis-server --appendonly yes --maxmemory 20mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
+      - ./redis/redis-databases.json:/db/redis-databases.json
     networks:
       - demo-network
     healthcheck:
@@ -45,18 +46,17 @@ services:
     cpus: 1
 
   redisinsight:
-    image: redislabs/redisinsight:latest
+    image: redis/redisinsight:latest   # dùng image chính thức mới
     container_name: demo-redisinsight
     restart: unless-stopped
     ports:
-      - "8001:8001"   # giao diện web RedisInsight
+      - "9001:5540"   # RedisInsight v2/v3 chạy UI trên port 5540 bên trong container
     volumes:
-      - redisinsight_data:/db
+      - redisinsight_data:/data
     networks:
       - demo-network
     depends_on:
       - redis
-
 
   app:
     build: .
