@@ -1,204 +1,188 @@
-# Demo Spring Boot Product API
+# Learn Performance Test - Product API
 
-## Mô tả
-API CRUD cho quản lý sản phẩm với kiến trúc: Controller -> Service -> Repository -> Entity -> DTO
+## Mô tả ngắn
+API CRUD quản lý sản phẩm. Entity `Product` quan hệ ManyToOne với `Merchant` qua cột `merchant_id`. Mapping DTO sử dụng MapStruct.
 
-## Cấu trúc Project
-```
-src/main/java/com/example/demo/
-├── controller/
-│   └── ProductController.java
-├── service/
-│   └── ProductService.java
-├── repository/
-│   └── ProductRepository.java
-├── entity/
-│   └── Product.java
-├── dto/
-│   ├── ProductDto.java
-│   ├── CreateProductDto.java
-│   └── UpdateProductDto.java
-└── exception/
-    └── GlobalExceptionHandler.java
-```
+- Base URL: `http://localhost:8080`
+- Tiền tố API: `/api/products`
+- Content-Type: `application/json`
 
-## Cấu hình Database
-Cập nhật file `application.properties`:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-```
+## DTO hiện tại
+- `ProductRequest`
+  - `id` (Long, optional - bỏ qua khi tạo)
+  - `name` (String, required)
+  - `description` (String, optional)
+  - `price` (Number/Decimal, required)
+  - `merchantId` (Long, required)
+  - `isDeleted` (Boolean, optional, default `false`)
 
-## API Endpoints
+- `ProductDto` (response)
+  - `id` (Long)
+  - `name` (String)
+  - `description` (String)
+  - `price` (Number/Decimal)
+  - `merchantId` (Long)
+  - `isDeleted` (Boolean)
+  - `createdAt` (String, ISO)
+  - `updatedAt` (String, ISO)
 
-### 1. Lấy tất cả sản phẩm
-```
-GET /api/products
-```
+## Endpoints
 
-### 2. Lấy sản phẩm theo ID
-```
-GET /api/products/{id}
-```
-
-### 3. Tạo sản phẩm mới
+### 1) Tạo sản phẩm
 ```
 POST /api/products
-Content-Type: application/json
-
+```
+Request body:
+```json
 {
-    "name": "Tên sản phẩm",
-    "description": "Mô tả sản phẩm",
-    "price": 100000.00
-   
+  "name": "iPhone 15 Pro",
+  "description": "A17 Pro, Titanium",
+  "price": 25000000.00,
+  "merchantId": 1,
+  "isDeleted": false
 }
 ```
+Response 200 (ProductDto):
+```json
+{
+  "id": 10,
+  "name": "iPhone 15 Pro",
+  "description": "A17 Pro, Titanium",
+  "price": 25000000.00,
+  "merchantId": 1,
+  "isDeleted": false,
+  "createdAt": "2025-08-22T10:00:00",
+  "updatedAt": "2025-08-22T10:00:00"
+}
+```
+Curl:
+```bash
+curl -X POST http://localhost:8080/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name":"iPhone 15 Pro",
+    "description":"A17 Pro, Titanium",
+    "price":25000000.00,
+    "merchantId":1,
+    "isDeleted":false
+  }'
+```
 
-### 4. Cập nhật sản phẩm
+### 2) Cập nhật sản phẩm
 ```
 PUT /api/products/{id}
-Content-Type: application/json
-
+```
+Request body (cùng schema với tạo):
+```json
 {
-    "name": "Tên sản phẩm mới",
-    "price": 120000.00,
-    "stockQuantity": 60
+  "name": "iPhone 15 Pro (2025)",
+  "description": "A17 Pro, Titanium",
+  "price": 26000000.00,
+  "merchantId": 1,
+  "isDeleted": false
 }
 ```
+Response 200 (ProductDto) trả về bản ghi sau cập nhật.
+Curl:
+```bash
+curl -X PUT http://localhost:8080/api/products/10 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name":"iPhone 15 Pro (2025)",
+    "description":"A17 Pro, Titanium",
+    "price":26000000.00,
+    "merchantId":1,
+    "isDeleted":false
+  }'
+```
 
-### 5. Xóa sản phẩm (Soft Delete)
+### 3) Xóa sản phẩm
 ```
 DELETE /api/products/{id}
 ```
-
-### 6. Tìm kiếm sản phẩm theo tên
-```
-GET /api/products/search?name=keyword
-```
-
-### 7. Lấy sản phẩm theo danh mục
-```
-GET /api/products/category/{category}
-```
-
-### 8. Lấy sản phẩm theo khoảng giá
-```
-GET /api/products/price-range?minPrice=100000&maxPrice=500000
-```
-
-### 9. Lấy sản phẩm có số lượng tồn kho thấp
-```
-GET /api/products/low-stock?threshold=10
-```
-
-### 10. Kích hoạt sản phẩm
-```
-PATCH /api/products/{id}/activate
-```
-
-### 11. Vô hiệu hóa sản phẩm
-```
-PATCH /api/products/{id}/deactivate
-```
-
-## Validation Rules
-
-### CreateProductDto
-- `name`: Bắt buộc, không được để trống
-- `price`: Bắt buộc, phải lớn hơn 0
-- `stockQuantity`: Bắt buộc, phải lớn hơn hoặc bằng 0
-
-### UpdateProductDto
-- `price`: Nếu có, phải lớn hơn 0
-- `stockQuantity`: Nếu có, phải lớn hơn hoặc bằng 0
-
-## Chạy ứng dụng
-
-### Cách 1: Chạy trực tiếp với Maven
-
-1. Cài đặt dependencies:
+Response 204 No Content.
+Curl:
 ```bash
-mvn clean install
+curl -X DELETE http://localhost:8080/api/products/10
 ```
 
-2. Chạy ứng dụng:
+### 4) Lấy chi tiết sản phẩm
+```
+GET /api/products/{id}
+```
+Response 200 (ProductDto):
+```json
+{
+  "id": 10,
+  "name": "iPhone 15 Pro",
+  "description": "A17 Pro, Titanium",
+  "price": 25000000.00,
+  "merchantId": 1,
+  "isDeleted": false,
+  "createdAt": "2025-08-22T10:00:00",
+  "updatedAt": "2025-08-22T10:00:00"
+}
+```
+Curl:
 ```bash
-mvn spring-boot:run
+curl http://localhost:8080/api/products/10
 ```
 
-3. Truy cập API tại: `http://localhost:8080/api/products`
+### 5) Danh sách sản phẩm (phân trang)
+```
+GET /api/products
+```
+Query params chuẩn Spring Data:
+- `page` (mặc định 0)
+- `size` (mặc định 20)
+- `sort` (ví dụ `name,asc` hoặc nhiều sort: `name,asc&sort=price,desc`)
 
-### Cách 2: Chạy với Docker Compose (Khuyến nghị)
-
-1. Build và chạy toàn bộ stack:
+Ví dụ:
+```
+GET /api/products?page=0&size=10&sort=createdAt,desc
+```
+Response 200 (Page<ProductDto>) ví dụ rút gọn:
+```json
+{
+  "content": [
+    {
+      "id": 10,
+      "name": "iPhone 15 Pro",
+      "description": "A17 Pro, Titanium",
+      "price": 25000000.00,
+      "merchantId": 1,
+      "isDeleted": false,
+      "createdAt": "2025-08-22T10:00:00",
+      "updatedAt": "2025-08-22T10:00:00"
+    }
+  ],
+  "pageable": { "pageNumber": 0, "pageSize": 10 },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "size": 10,
+  "number": 0,
+  "sort": { "sorted": true, "unsorted": false, "empty": false },
+  "first": true,
+  "numberOfElements": 1,
+  "empty": false
+}
+```
+Curl:
 ```bash
-# Build application
+curl "http://localhost:8080/api/products?page=0&size=10&sort=createdAt,desc"
+```
+
+## Ghi chú
+- `price` được lưu ở DB dạng `DECIMAL(15,2)` và ở entity là `BigDecimal`.
+- `merchantId` cần tồn tại trong bảng `merchants` (khóa ngoại).
+- MapStruct tự động map `merchantId` ↔ `merchant.id` trong tầng entity/DTO.
+- Một số endpoint có dùng cache (`@Cacheable`, `@CachePut`, `@CacheEvict`) với cache name `products` nếu đã bật Spring Cache/Redis.
+
+## Khởi chạy nhanh
+```bash
 mvn clean package -DskipTests
-
-# Chạy với Docker Compose
-docker-compose up -d
-```
-
-2. Truy cập các service:
-- **Spring Boot API**: http://localhost:8080/api/products
-- **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3000 (admin/admin123)
-- **MySQL**: localhost:3306
-
-3. Dừng services:
-```bash
 docker-compose down
+docker-compose up -d --build
 ```
-
-4. Xóa volumes (dữ liệu):
-```bash
-docker-compose down -v
-```
-
-### Cấu hình Docker
-
-- **MySQL**: Database `demo_db` với user `demo_user`/`demo_password`
-- **Prometheus**: Monitor Spring Boot app tại `/actuator/prometheus`
-- **Grafana**: Dashboard mẫu cho Spring Boot metrics
-- **Health Checks**: Tự động kiểm tra sức khỏe của các service
-
-## Tính năng
-
-- ✅ CRUD operations đầy đủ
-- ✅ Validation với Bean Validation
-- ✅ Soft Delete
-- ✅ Tìm kiếm và lọc sản phẩm
-- ✅ Global Exception Handling
-- ✅ Cross-Origin support
-- ✅ Transactional support
-- ✅ Lombok để giảm boilerplate code
-- ✅ Docker containerization
-- ✅ MySQL database integration
-- ✅ Prometheus monitoring
-- ✅ Grafana dashboards
-- ✅ Health checks
-- ✅ Automated deployment scripts
-
-## Monitoring & Observability
-
-### Prometheus Metrics
-Spring Boot app expose metrics tại `/actuator/prometheus` bao gồm:
-- HTTP request metrics
-- JVM memory và thread metrics
-- Database connection pool metrics
-- Custom business metrics
-
-### Grafana Dashboards
-Dashboard mẫu bao gồm:
-- HTTP Request Rate
-- Response Time
-- JVM Memory Usage
-- Thread States
-- Database Connections
-- Error Rate
-
-### Health Checks
-- Spring Boot Actuator health endpoint
-- MySQL connection health
-- Container health checks 
+Truy cập: `http://localhost:8080/api/products` 

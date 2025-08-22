@@ -1,6 +1,9 @@
 package com.example.learnperformancetest.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -11,5 +14,9 @@ public class ProductDto {
     private Long id;
     private String name;
     private String description;
-    private Double price;
+    private BigDecimal price;
+    private Long merchantId;
+    private Boolean isDeleted = false;
+    private String createdAt;
+    private String updatedAt;
 }
