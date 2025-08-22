@@ -57,7 +57,7 @@ Response 200 (ProductDto):
 ```
 Curl:
 ```bash
-curl -X POST http://localhost:8080/api/products \
+curl -X POST http://localhost:8080/v1/api/products \
   -H "Content-Type: application/json" \
   -d '{
     "name":"iPhone 15 Pro",
@@ -85,7 +85,7 @@ Request body (cùng schema với tạo):
 Response 200 (ProductDto) trả về bản ghi sau cập nhật.
 Curl:
 ```bash
-curl -X PUT http://localhost:8080/api/products/10 \
+curl -X PUT http://localhost:8080/v1/api/products/10 \
   -H "Content-Type: application/json" \
   -d '{
     "name":"iPhone 15 Pro (2025)",
@@ -103,7 +103,7 @@ DELETE /api/products/{id}
 Response 204 No Content.
 Curl:
 ```bash
-curl -X DELETE http://localhost:8080/api/products/10
+curl -X DELETE http://localhost:8080/v1/api/products/10
 ```
 
 ### 4) Lấy chi tiết sản phẩm
@@ -125,7 +125,7 @@ Response 200 (ProductDto):
 ```
 Curl:
 ```bash
-curl http://localhost:8080/api/products/10
+curl http://localhost:8080/v1/api/products/10
 ```
 
 ### 5) Danh sách sản phẩm (phân trang)
@@ -170,7 +170,7 @@ Response 200 (Page<ProductDto>) ví dụ rút gọn:
 ```
 Curl:
 ```bash
-curl "http://localhost:8080/api/products?page=0&size=10&sort=createdAt,desc"
+curl "http://localhost:8080/v1/api/products?page=0&size=10&sort=createdAt,desc"
 ```
 
 ---
@@ -200,7 +200,7 @@ Response 200 (MerchantDto):
 ```
 Curl:
 ```bash
-curl -X POST http://localhost:8080/api/merchants \
+curl -X POST http://localhost:8080/v1/api/merchants \
   -H "Content-Type: application/json" \
   -d '{"name":"Apple Inc."}'
 ```
@@ -216,7 +216,7 @@ Request body:
 Response 200 (MerchantDto) trả về bản ghi sau cập nhật.
 Curl:
 ```bash
-curl -X PUT http://localhost:8080/api/merchants/1 \
+curl -X PUT http://localhost:8080/v1/api/merchants/1 \
   -H "Content-Type: application/json" \
   -d '{"name":"Apple"}'
 ```
@@ -228,7 +228,7 @@ DELETE /api/merchants/{id}
 Response 204 No Content.
 Curl:
 ```bash
-curl -X DELETE http://localhost:8080/api/merchants/1
+curl -X DELETE http://localhost:8080/v1/api/merchants/1
 ```
 
 ### 4) Lấy chi tiết merchant
@@ -241,7 +241,7 @@ Response 200 (MerchantDto):
 ```
 Curl:
 ```bash
-curl http://localhost:8080/api/merchants/1
+curl http://localhost:8080/v1/api/merchants/1
 ```
 
 ### 5) Danh sách merchant (phân trang)
@@ -265,7 +265,7 @@ Response 200 (Page<MerchantDto>) ví dụ rút gọn:
 ```
 Curl:
 ```bash
-curl "http://localhost:8080/api/merchants?page=0&size=10&sort=name,asc"
+curl "http://localhost:8080/v1/api/merchants?page=0&size=10&sort=name,asc"
 ```
 
 ## Ghi chú
@@ -280,4 +280,4 @@ mvn clean package -DskipTests
 docker-compose down
 docker-compose up -d --build
 ```
-Truy cập: `http://localhost:8080/api/products` 
+Truy cập: `http://localhost:8080/v1/api/products` 
