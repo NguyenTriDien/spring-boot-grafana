@@ -173,6 +173,101 @@ Curl:
 curl "http://localhost:8080/api/products?page=0&size=10&sort=createdAt,desc"
 ```
 
+---
+
+## Merchant API
+- Tiền tố API: `/api/merchants`
+
+### DTO
+- `MerchantRequest`
+  - `name` (String, required)
+
+- `MerchantDto`
+  - `id` (Long)
+  - `name` (String)
+
+### 1) Tạo merchant
+```
+POST /api/merchants
+```
+Request body:
+```json
+{ "name": "Apple Inc." }
+```
+Response 200 (MerchantDto):
+```json
+{ "id": 1, "name": "Apple Inc." }
+```
+Curl:
+```bash
+curl -X POST http://localhost:8080/api/merchants \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Apple Inc."}'
+```
+
+### 2) Cập nhật merchant
+```
+PUT /api/merchants/{id}
+```
+Request body:
+```json
+{ "name": "Apple" }
+```
+Response 200 (MerchantDto) trả về bản ghi sau cập nhật.
+Curl:
+```bash
+curl -X PUT http://localhost:8080/api/merchants/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Apple"}'
+```
+
+### 3) Xóa merchant
+```
+DELETE /api/merchants/{id}
+```
+Response 204 No Content.
+Curl:
+```bash
+curl -X DELETE http://localhost:8080/api/merchants/1
+```
+
+### 4) Lấy chi tiết merchant
+```
+GET /api/merchants/{id}
+```
+Response 200 (MerchantDto):
+```json
+{ "id": 1, "name": "Apple Inc." }
+```
+Curl:
+```bash
+curl http://localhost:8080/api/merchants/1
+```
+
+### 5) Danh sách merchant (phân trang)
+```
+GET /api/merchants
+```
+Query params: `page`, `size`, `sort`
+
+Ví dụ:
+```
+GET /api/merchants?page=0&size=10&sort=name,asc
+```
+Response 200 (Page<MerchantDto>) ví dụ rút gọn:
+```json
+{
+  "content": [ { "id": 1, "name": "Apple Inc." } ],
+  "pageable": { "pageNumber": 0, "pageSize": 10 },
+  "totalElements": 1,
+  "totalPages": 1
+}
+```
+Curl:
+```bash
+curl "http://localhost:8080/api/merchants?page=0&size=10&sort=name,asc"
+```
+
 ## Ghi chú
 - `price` được lưu ở DB dạng `DECIMAL(15,2)` và ở entity là `BigDecimal`.
 - `merchantId` cần tồn tại trong bảng `merchants` (khóa ngoại).
