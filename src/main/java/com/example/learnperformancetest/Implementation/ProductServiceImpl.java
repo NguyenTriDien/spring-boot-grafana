@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
 
     @Override
+    @Transactional
     public ProductDto create(ProductRequest request) {
         Merchant merchant = merchantRepository.findById(request.getMerchantId())
                 .orElseThrow(() -> new RuntimeException("Merchant not found"));
@@ -35,31 +37,37 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @CachePut(value = "products", key = "#id")
+    @Transactional
     public ProductDto update(Long id, ProductRequest request) {
-        productRepository.findByIdAndIsDeletedFalse(id)
+        Product product = productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Not found"));
         productMapper.updateEntityFromRequest(request, product);
         return productMapper.toDto(productRepository.save(product));
     }
 
     @Override
     @CacheEvict(value = "products", key = "#id")
+    @Transactional
     public void delete(Long id) {
-        productRepository.deleteById(id);
+        Product product = productRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setIsDeleted(true);
+        productRepository.save(product);
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "#id")
     public ProductDto getById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Not found"));
+        Product product = productRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
         return productMapper.toDto(product);
     }
+
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductDto> getAll(Pageable pageable) {
-        return productRepository.findAll(pageable)
+        return productRepository.findAllByIsDeletedFalse(pageable)
                 .map(productMapper::toDto);
     }
 }

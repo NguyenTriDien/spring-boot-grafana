@@ -281,3 +281,136 @@ docker-compose down
 docker-compose up -d --build
 ```
 Truy cập: `http://localhost:8080/v1/api/products` 
+
+Lệnh monitor docker
+```bash 
+docker stats
+```
+
+## Các lệnh Docker hữu ích
+
+### Quản lý container
+```bash
+# Xem danh sách container đang chạy
+docker ps
+
+# Xem tất cả container (kể cả đã dừng)
+docker ps -a
+
+# Dừng container
+docker stop <container_id>
+
+# Khởi động lại container
+docker restart <container_id>
+
+# Xóa container
+docker rm <container_id>
+
+# Xem logs của container
+docker logs <container_id>
+
+# Xem logs real-time
+docker logs -f <container_id>
+
+# Truy cập vào container đang chạy
+docker exec -it <container_id> /bin/bash
+```
+
+### Quản lý images
+```bash
+# Xem danh sách images
+docker images
+
+# Xóa image
+docker rmi <image_id>
+
+# Xóa tất cả images không sử dụng
+docker image prune -a
+
+# Build image từ Dockerfile
+docker build -t <tên_image> .
+```
+
+### Quản lý volumes và networks
+```bash
+# Xem danh sách volumes
+docker volume ls
+
+# Xem danh sách networks
+docker network ls
+
+# Xem thông tin chi tiết network
+docker network inspect <network_name>
+```
+
+### Docker Compose
+```bash
+# Khởi động services
+docker-compose up -d
+
+# Dừng services
+docker-compose down
+
+# Xem logs của tất cả services
+docker-compose logs
+
+# Xem logs của service cụ thể
+docker-compose logs <service_name>
+
+# Rebuild và khởi động services
+docker-compose up -d --build
+
+# Xem trạng thái services
+docker-compose ps
+
+# Dừng và xóa volumes
+docker-compose down -v
+```
+
+### Monitoring và Debugging
+```bash
+# Xem thống kê sử dụng tài nguyên
+docker stats
+
+# Xem thông tin chi tiết container
+docker inspect <container_id>
+
+# Xem thông tin chi tiết image
+docker inspect <image_id>
+
+# Xem lịch sử image
+docker history <image_id>
+```
+
+### Dọn dẹp hệ thống
+```bash
+# Xóa tất cả container đã dừng
+docker container prune
+
+# Xóa tất cả images không sử dụng
+docker image prune -a
+
+# Xóa tất cả volumes không sử dụng
+docker volume prune
+
+# Xóa tất cả networks không sử dụng
+docker network prune
+
+# Dọn dẹp toàn bộ (containers, images, volumes, networks)
+docker system prune -a --volumes
+```
+
+### Troubleshooting
+```bash
+# Kiểm tra disk space sử dụng bởi Docker
+docker system df
+
+# Xem thông tin hệ thống Docker
+docker info
+
+# Kiểm tra version Docker
+docker version
+
+# Xem events Docker real-time
+docker events
+```
