@@ -42,7 +42,6 @@ public class Product {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "merchant_id", nullable = false)
-    private Merchant merchant;
+    @Column(name = "merchant_id", nullable = false)
+    private Long merchantId;
 }

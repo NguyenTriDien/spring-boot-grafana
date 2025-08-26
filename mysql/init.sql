@@ -27,9 +27,8 @@ CREATE TABLE IF NOT EXISTS products (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     is_deleted TINYINT(1) NOT NULL DEFAULT 0,
-    merchant_id BIGINT NOT NULL,
-    CONSTRAINT fk_products_merchants FOREIGN KEY (merchant_id) REFERENCES merchants(id)
-);
+    merchant_id BIGINT NOT NULL
+    );
 
 -- Dữ liệu mẫu merchants
 INSERT INTO merchants (name) VALUES

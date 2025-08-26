@@ -1,7 +1,6 @@
 package com.example.learnperformancetest.Implementation;
 
 import com.example.learnperformancetest.dto.ProductDto;
-import com.example.learnperformancetest.entity.Merchant;
 import com.example.learnperformancetest.entity.Product;
 import com.example.learnperformancetest.mapper.ProductMapper;
 import com.example.learnperformancetest.repository.MerchantRepository;
@@ -28,11 +27,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDto create(ProductRequest request) {
-        Merchant merchant = merchantRepository.findById(request.getMerchantId())
-                .orElseThrow(() -> new RuntimeException("Merchant not found"));
+        if (!merchantRepository.existsById(request.getMerchantId())) {
+            throw new RuntimeException("Merchant with id " + request.getMerchantId() + " not found");
+        }
         Product product = productMapper.toEntity(request);
-        product.setMerchant(merchant);
-        return productMapper.toDto(productRepository.save(product));
+        Product savedProduct = productRepository.save(product);
+        return productMapper.toDto(savedProduct);
     }
 
     @Override
