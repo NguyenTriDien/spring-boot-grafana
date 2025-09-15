@@ -4,6 +4,8 @@ import com.example.learnperformancetest.dto.ProductDto;
 import com.example.learnperformancetest.request.ProductRequest;
 import com.example.learnperformancetest.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -14,31 +16,59 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProductController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
+
     private final ProductService productService;
 
     @PostMapping
     public ResponseEntity<ProductDto> create(@RequestBody ProductRequest request) {
-        return ResponseEntity.ok(productService.create(request));
+        logger.info("REQUEST: POST /v1/api/products body={}", request);
+
+        ProductDto response = productService.create(request);
+
+        logger.info("RESPONSE: status=200 body={}", response);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(@PathVariable Long id, @RequestBody ProductRequest request) {
-        return ResponseEntity.ok(productService.update(id, request));
+        logger.info("REQUEST: PUT /v1/api/products/{} body={}", id, request);
+
+        ProductDto response = productService.update(id, request);
+
+        logger.info("RESPONSE: status=200 body={}", response);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        logger.info("REQUEST: DELETE /v1/api/products/{}", id);
+
         productService.delete(id);
+
+        logger.info("RESPONSE: status=204 (no content)");
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getById(id));
+        logger.info("REQUEST: GET /v1/api/products/{}", id);
+
+        ProductDto response = productService.getById(id);
+
+        logger.info("RESPONSE: status=200 body={}", response);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<Page<ProductDto>> getAll(Pageable pageable) {
-        return ResponseEntity.ok(productService.getAll(pageable));
+        logger.info("REQUEST: GET /v1/api/products page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<ProductDto> response = productService.getAll(pageable);
+
+        logger.info("RESPONSE: status=200 body=Page(totalElements={}, totalPages={})",
+                response.getTotalElements(), response.getTotalPages());
+
+        return ResponseEntity.ok(response);
     }
 }
