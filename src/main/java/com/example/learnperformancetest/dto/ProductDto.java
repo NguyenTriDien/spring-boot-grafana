@@ -19,4 +19,18 @@ public class ProductDto {
     private Boolean isDeleted = false;
     private String createdAt;
     private String updatedAt;
+
+    @Override
+    public String toString() {
+        return "ProductDto{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", merchantId=" + merchantId +
+                ", isDeleted=" + isDeleted +
+                ", createdAt='" + createdAt + '\'' +
+                ", updatedAt='" + updatedAt + '\'' +
+                '}';
+    }
 }

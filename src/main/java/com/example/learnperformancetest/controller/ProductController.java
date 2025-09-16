@@ -26,7 +26,7 @@ public class ProductController {
 
         ProductDto response = productService.create(request);
 
-        logger.info("RESPONSE: status=200 body={}", response);
+        logger.info("RESPONSE: status=200 body={}", response.toString());
         return ResponseEntity.ok(response);
     }
 
@@ -36,7 +36,7 @@ public class ProductController {
 
         ProductDto response = productService.update(id, request);
 
-        logger.info("RESPONSE: status=200 body={}", response);
+        logger.info("RESPONSE: status=200 body={}", response.toString());
         return ResponseEntity.ok(response);
     }
 
@@ -56,7 +56,7 @@ public class ProductController {
 
         ProductDto response = productService.getById(id);
 
-        logger.info("RESPONSE: status=200 body={}", response);
+        logger.info("RESPONSE: status=200 body={}", response.toString());
         return ResponseEntity.ok(response);
     }
 
