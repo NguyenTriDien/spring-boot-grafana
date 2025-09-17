@@ -53,7 +53,6 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
         logger.info("REQUEST: GET /v1/api/products/{}", id);
-
         ProductDto response = productService.getById(id);
 
         logger.info("RESPONSE: status=200 body={}", response.toString());
@@ -63,7 +62,6 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ProductDto>> getAll(Pageable pageable) {
         logger.info("REQUEST: GET /v1/api/products page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
-
         Page<ProductDto> response = productService.getAll(pageable);
 
         logger.info("RESPONSE: status=200 body=Page(totalElements={}, totalPages={})",
