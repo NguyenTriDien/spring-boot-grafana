@@ -24,16 +24,15 @@
             </providers>
         </encoder>
 
-        <!-- Chấp nhận log từ INFO trở lên (INFO, WARN, ERROR) -->
+        <!-- Chỉ lấy log INFO trở lên -->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
 
-        <!-- Tăng buffer nếu cần -->
         <ringBufferSize>65536</ringBufferSize>
     </appender>
 
-    <!-- AsyncAppender bọc LOGSTASH để tránh block ứng dụng -->
+    <!-- AsyncAppender để tránh block -->
     <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="LOGSTASH"/>
         <queueSize>20000</queueSize>
@@ -42,6 +41,18 @@
         <maxFlushTime>1000</maxFlushTime>
         <includeCallerData>false</includeCallerData>
     </appender>
+
+    <!-- Hibernate SQL log -->
+    <logger name="org.hibernate.SQL" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_LOGSTASH"/>
+    </logger>
+
+    <!-- Hibernate bind parameter -->
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_LOGSTASH"/>
+    </logger>
 
     <!-- Root logger -->
     <root level="INFO">

@@ -2,6 +2,7 @@ package com.example.learnperformancetest.Implementation;
 
 import com.example.learnperformancetest.dto.ProductDto;
 import com.example.learnperformancetest.entity.Product;
+import com.example.learnperformancetest.exception.ProductNotFoundException;
 import com.example.learnperformancetest.mapper.ProductMapper;
 import com.example.learnperformancetest.repository.MerchantRepository;
 import com.example.learnperformancetest.repository.ProductRepository;
@@ -74,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> {
                     logger.warn("Product with id {} not found", id);
-                    return new RuntimeException("Product not found");
+                    return new ProductNotFoundException("Product " + id + " not found");
                 });
         return productMapper.toDto(product);
     }
@@ -84,6 +85,13 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDto> getAll(Pageable pageable) {
         logger.info("Fetching all products with pagination: page {}, size {}", pageable.getPageNumber(), pageable.getPageSize());
         return productRepository.findAllByIsDeletedFalse(pageable)
+                .map(productMapper::toDto);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getProductsByName(String name, Pageable pageable) {
+        logger.info("Fetching products by name: {} with pagination: page {}, size {}", name, pageable.getPageNumber(), pageable.getPageSize());
+        return productRepository.findByNameAndIsDeletedFalse(name, pageable)
                 .map(productMapper::toDto);
     }
 }

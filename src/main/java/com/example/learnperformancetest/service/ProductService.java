@@ -13,4 +13,6 @@ public interface ProductService {
     void delete(Long id);
     ProductDto getById(Long id);
     Page<ProductDto> getAll(Pageable pageable);
+
+    Page<ProductDto> getProductsByName(String name, Pageable pageable);
 }
