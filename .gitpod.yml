@@ -1,0 +1,23 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - name: Build and Start Services
+    init: docker-compose build
+    command: docker-compose up
+
+ports:
+  - port: 8080
+    onOpen: open-preview
+  - port: 3000
+    onOpen: open-preview
+  - port: 5601
+    onOpen: open-preview
+  - port: 9090
+    onOpen: open-preview
+  - port: 9001
+    onOpen: open-preview
+  - port: 9200
+    onOpen: open-preview
+  - port: 4040
+    onOpen: open-preview
