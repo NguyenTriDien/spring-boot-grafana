@@ -173,6 +173,53 @@ Curl:
 curl "http://localhost:8080/v1/api/products?page=0&size=10&sort=createdAt,desc"
 ```
 
+### 6) Tìm sản phẩm theo khoảng thời gian tạo
+```
+GET /api/products/by-date-range
+```
+Query params:
+- `startDate` (String, required) - Ngày bắt đầu (ISO 8601 format: yyyy-MM-ddTHH:mm:ss)
+- `endDate` (String, required) - Ngày kết thúc (ISO 8601 format: yyyy-MM-ddTHH:mm:ss)
+- `page` (mặc định 0)
+- `size` (mặc định 20)
+- `sort` (ví dụ `createdAt,desc`)
+
+Ví dụ:
+```
+GET /api/products/by-date-range?startDate=2025-01-01T00:00:00&endDate=2025-12-31T23:59:59&page=0&size=10&sort=createdAt,desc
+```
+Response 200 (Page<ProductDto>) tương tự như endpoint danh sách sản phẩm:
+```json
+{
+  "content": [
+    {
+      "id": 10,
+      "name": "iPhone 15 Pro",
+      "description": "A17 Pro, Titanium",
+      "price": 25000000.00,
+      "merchantId": 1,
+      "isDeleted": false,
+      "createdAt": "2025-08-22T10:00:00",
+      "updatedAt": "2025-08-22T10:00:00"
+    }
+  ],
+  "pageable": { "pageNumber": 0, "pageSize": 10 },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "size": 10,
+  "number": 0,
+  "sort": { "sorted": true, "unsorted": false, "empty": false },
+  "first": true,
+  "numberOfElements": 1,
+  "empty": false
+}
+```
+Curl:
+```bash
+curl "http://localhost:8080/v1/api/products/by-date-range?startDate=2025-01-01T00:00:00&endDate=2025-12-31T23:59:59&page=0&size=10&sort=createdAt,desc"
+```
+
 ---
 
 ## Merchant API

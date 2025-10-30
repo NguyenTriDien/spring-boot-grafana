@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +16,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findAllByIsDeletedFalse(Pageable pageable);
 
     Page<Product> findByNameAndIsDeletedFalse(String name, Pageable pageable);
+
+    Page<Product> findByCreatedAtBetweenAndIsDeletedFalse(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 }

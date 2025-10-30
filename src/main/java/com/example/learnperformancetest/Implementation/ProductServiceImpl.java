@@ -19,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -93,5 +95,15 @@ public class ProductServiceImpl implements ProductService {
         logger.info("Fetching products by name: {} with pagination: page {}, size {}", name, pageable.getPageNumber(), pageable.getPageSize());
         return productRepository.findByNameAndIsDeletedFalse(name, pageable)
                 .map(productMapper::toDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getProductsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        logger.info("Fetching products by date range: {} to {} with pagination: page {}, size {}", 
+                startDate, endDate, pageable.getPageNumber(), pageable.getPageSize());
+        Page<Product> products = productRepository.findByCreatedAtBetweenAndIsDeletedFalse(startDate, endDate, pageable);
+        logger.info("Start mappting to product dto");
+        return products.map(productMapper::toDto);
     }
 }

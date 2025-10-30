@@ -1,6 +1,9 @@
 version: '2.4'
 
 services:
+  # =========================
+  # DATABASE LAYER
+  # =========================
   mysql:
     image: mysql:8.0
     container_name: demo-mysql
@@ -17,13 +20,13 @@ services:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - demo-network
+    mem_limit: 2g # RAM tối đa 1GB
+    memswap_limit: 2g # Không cho dùng swap
+    cpus: 2 # Tối đa 1.5 CPU core
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
-    mem_limit: 2g           # RAM tối đa 1GB
-    memswap_limit: 2g       # Không cho dùng swap
-    cpus: 2               # Tối đa 1.5 CPU core
 
   redis:
     image: redis:7-alpine
@@ -31,33 +34,36 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes --maxmemory 20mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 50mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
-      - ./redis/redis-databases.json:/db/redis-databases.json
     networks:
       - demo-network
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       timeout: 5s
       retries: 5
-    mem_limit: 1g
-    memswap_limit: 1g
-    cpus: 1
+    mem_limit: 512m
+    cpus: 0.5
 
   redisinsight:
-    image: redis/redisinsight:latest   # dùng image chính thức mới
+    image: redis/redisinsight:latest
     container_name: demo-redisinsight
     restart: unless-stopped
     ports:
-      - "9001:5540"   # RedisInsight v2/v3 chạy UI trên port 5540 bên trong container
+      - "9001:5540"
     volumes:
       - redisinsight_data:/data
-    networks:
-      - demo-network
     depends_on:
       - redis
+    networks:
+      - demo-network
+    mem_limit: 512m
+    cpus: 0.5
 
+  # =========================
+  # APPLICATION LAYER
+  # =========================
   app:
     build: .
     container_name: demo-app
@@ -74,6 +80,8 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: always
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
     depends_on:
       mysql:
         condition: service_healthy
@@ -87,10 +95,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    mem_limit: 4g           # RAM tối đa 2GB
-    memswap_limit: 4g       # Không cho dùng swap
-    cpus: 4                 # Tối đa 2 CPU core
+    mem_limit: 2g
+    cpus: 2
 
+  # =========================
+  # MONITORING
+  # =========================
   prometheus:
     image: prom/prometheus:latest
     container_name: demo-prometheus
@@ -103,31 +113,18 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     depends_on:
       - app
+      - redis-exporter
+      - mysqld-exporter
+      - node-exporter
+      - cadvisor
     networks:
       - demo-network
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    restart: unless-stopped
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-    networks:
-      - demo-network
+    mem_limit: 1g
+    cpus: 1
 
   grafana:
     image: grafana/grafana:latest
@@ -147,20 +144,23 @@ services:
       - prometheus
     networks:
       - demo-network
+    mem_limit: 512m
+    cpus: 0.5
 
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: demo-ngrok
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
     restart: unless-stopped
-    volumes:
-      - ./ngrok.yml:/etc/ngrok/ngrok.yml:ro
-    command: start --all --config /etc/ngrok/ngrok.yml
-    depends_on:
-      - app
-      - grafana
-      - kibana
     ports:
-      - "4040:4040"
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
     networks:
       - demo-network
 
@@ -168,8 +168,7 @@ services:
     image: prom/mysqld-exporter:latest
     container_name: mysql-exporter
     restart: unless-stopped
-    command:
-      - '--config.my-cnf=/etc/mysql/my.cnf'
+    command: [ '--config.my-cnf=/etc/mysql/my.cnf' ]
     ports:
       - "9104:9104"
     depends_on:
@@ -178,8 +177,6 @@ services:
       - ./exporter-my.cnf:/etc/mysql/my.cnf:ro
     networks:
       - demo-network
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "mysql" ]
 
   redis-exporter:
     image: oliver006/redis_exporter:latest
@@ -189,30 +186,30 @@ services:
       - "9121:9121"
     environment:
       REDIS_ADDR: redis://redis:6379
-      REDIS_PASSWORD: ""
     depends_on:
       - redis
     networks:
       - demo-network
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9121/metrics" ]
-      timeout: 5s
-      retries: 5
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
     ports:
-      - "8081:8080" # UI cAdvisor nếu muốn xem trực tiếp
+      - "8081:8080"
+    privileged: true
     volumes:
       - /:/rootfs:ro
-      - /var/run:/var/run:ro
+      - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     networks:
       - demo-network
 
+  # =========================
+  # LOGGING STACK (ELK)
+  # =========================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.22
     container_name: elasticsearch
@@ -225,6 +222,8 @@ services:
       - es_data:/usr/share/elasticsearch/data
     networks:
       - demo-network
+    mem_limit: 2g
+    cpus: 2
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.22
@@ -244,25 +243,42 @@ services:
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     ports:
-      - "5000:5000"   # TCP input cho Spring Boot log gửi tới
+      - "5000:5000"
     depends_on:
       - elasticsearch
     networks:
       - demo-network
 
+  # =========================
+  # NGROK (Expose Public)
+  # =========================
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: demo-ngrok
+    restart: unless-stopped
+    volumes:
+      - ./ngrok.yml:/etc/ngrok/ngrok.yml:ro
+    command: start --all --config /etc/ngrok/ngrok.yml
+    depends_on:
+      - app
+      - grafana
+      - kibana
+    ports:
+      - "4040:4040"
+    networks:
+      - demo-network
+
+# =========================
+# VOLUMES & NETWORKS
+# =========================
 volumes:
   mysql_data:
-    driver: local
   redis_data:
-    driver: local
   prometheus_data:
-    driver: local
   grafana_data:
-    driver: local
   redisinsight_data:
-    driver: local
   es_data:
-    driver: local
+
 networks:
   demo-network:
     driver: bridge

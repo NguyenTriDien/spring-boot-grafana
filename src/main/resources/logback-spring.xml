@@ -59,4 +59,10 @@
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ASYNC_LOGSTASH"/>
     </root>
+
+    <!-- P6Spy logger to ship JSON lines to Logstash -->
+    <logger name="p6spy" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_LOGSTASH"/>
+    </logger>
 </configuration>
