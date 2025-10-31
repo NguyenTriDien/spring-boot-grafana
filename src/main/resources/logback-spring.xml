@@ -1,22 +1,28 @@
 <configuration>
-    <!-- Console appender -->
+    <!-- ========================
+         1️⃣ Console appender (gọn nhẹ)
+    ========================= -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{20} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Logstash TCP appender -->
+    <!-- ========================
+         2️⃣ Logstash appender (gửi sang ELK)
+    ========================= -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!-- Gửi log sang Logstash container -->
         <destination>logstash:5000</destination>
+
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
                 <timestamp/>
                 <logLevel/>
-                <loggerName/>
                 <threadName/>
+                <loggerName/>
                 <message/>
-                <mdc/>
+                <mdc/> <!-- chứa traceId, spanId nếu có -->
                 <pattern>
                     <pattern>{"traceId":"%X{traceId}","spanId":"%X{spanId}"}</pattern>
                 </pattern>
@@ -24,35 +30,43 @@
             </providers>
         </encoder>
 
-        <!-- Chỉ lấy log từ INFO trở lên -->
+        <!-- Chỉ lấy từ INFO trở lên -->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
     </appender>
 
-    <!-- Async để tránh block -->
+    <!-- ========================
+         3️⃣ Async wrapper (tránh block app)
+    ========================= -->
     <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="LOGSTASH"/>
-        <queueSize>10000</queueSize>
-        <discardingThreshold>10</discardingThreshold>
+        <queueSize>5000</queueSize>
+        <discardingThreshold>0</discardingThreshold>
         <neverBlock>true</neverBlock>
     </appender>
 
-    <!-- ⚠️ Tắt log SQL và bind parameter để giảm CPU -->
-    <logger name="org.hibernate.SQL" level="ERROR" additivity="false" />
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="ERROR" additivity="false" />
-    <logger name="p6spy" level="ERROR" additivity="false" />
-    <logger name="org.springframework.jdbc" level="ERROR" />
-    <logger name="org.springframework.orm.jpa" level="ERROR" />
-    <logger name="org.springframework.data.redis" level="ERROR" />
+    <!-- ========================
+         4️⃣ Giảm log noise (SQL, Redis, Spring)
+    ========================= -->
+    <logger name="org.hibernate.SQL" level="ERROR"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="ERROR"/>
+    <logger name="p6spy" level="ERROR"/>
+    <logger name="org.springframework.jdbc" level="ERROR"/>
+    <logger name="org.springframework.orm.jpa" level="ERROR"/>
+    <logger name="org.springframework.data.redis" level="ERROR"/>
 
-    <!-- Log của ứng dụng bạn -->
+    <!-- ========================
+         5️⃣ App logger
+    ========================= -->
     <logger name="com.example.learnperformancetest" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ASYNC_LOGSTASH"/>
     </logger>
 
-    <!-- Root logger -->
+    <!-- ========================
+         6️⃣ Root logger (fallback)
+    ========================= -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ASYNC_LOGSTASH"/>
