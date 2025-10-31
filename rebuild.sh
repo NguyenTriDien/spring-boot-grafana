@@ -1,7 +1,9 @@
 #!/bin/bash
 #chmod +x rebuild.sh
 set -e  # Nếu bất kỳ lệnh nào fail thì script sẽ dừng ngay
-
+git fetch
+git reset --hard origin/main
+echo "📥 Pulling latest changes from Git..."
 echo "🔨 Building Spring Boot app..."
 mvn clean package -DskipTests
 
