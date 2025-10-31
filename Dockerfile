@@ -19,6 +19,7 @@ EXPOSE 8080
 ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport"
 
 # Health check để kiểm tra ứng dụng có hoạt động không
+RUN apt-get update && apt-get install -y curl
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
