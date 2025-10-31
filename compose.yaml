@@ -168,13 +168,27 @@ services:
     image: prom/mysqld-exporter:latest
     container_name: mysql-exporter
     restart: unless-stopped
-    command: [ '--config.my-cnf=/etc/mysql/my.cnf' ]
     ports:
       - "9104:9104"
     depends_on:
       - mysql
     volumes:
       - ./exporter-my.cnf:/etc/mysql/my.cnf:ro
+    command:
+      - "--config.my-cnf=/etc/mysql/my.cnf"
+      - "--collect.global_status"
+      - "--collect.global_variables"
+      - "--collect.engine_innodb_status"
+      - "--collect.info_schema.tables"
+      - "--collect.info_schema.tablestats"
+      - "--collect.info_schema.innodb_metrics"
+      - "--collect.perf_schema.eventsstatements"
+      - "--collect.perf_schema.eventsstatements_digest_text_limit=120"
+      - "--collect.perf_schema.file_events"
+      - "--collect.perf_schema.file_instances"
+      - "--collect.perf_schema.indexiowaits"
+      - "--collect.perf_schema.tableiowaits"
+      - "--collect.perf_schema.tablelocks"
     networks:
       - demo-network
 
