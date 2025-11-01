@@ -116,7 +116,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductDto>> getProductsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate, Pageable pageable) {
         logger.info("REQUEST: GET /v1/api/products/by-date-range?startDate={}&endDate={} page={} size={}", startDate, endDate, pageable.getPageNumber(), pageable.getPageSize());
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 700));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
