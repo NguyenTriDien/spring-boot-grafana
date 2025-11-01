@@ -1,15 +1,6 @@
 <configuration>
     <!-- ========================
-         1️⃣ Console appender (gọn nhẹ)
-    ========================= -->
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{20} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!-- ========================
-         2️⃣ Logstash appender (gửi sang ELK)
+         1️⃣ Logstash appender (gửi sang ELK)
     ========================= -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <!-- Gửi log sang Logstash container -->
@@ -37,7 +28,7 @@
     </appender>
 
     <!-- ========================
-         3️⃣ Async wrapper (tránh block app)
+         2️⃣ Async wrapper (tránh block app)
     ========================= -->
     <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="LOGSTASH"/>
@@ -47,7 +38,7 @@
     </appender>
 
     <!-- ========================
-         4️⃣ Giảm log noise (SQL, Redis, Spring)
+         3️⃣ Giảm log noise (SQL, Redis, Spring)
     ========================= -->
     <logger name="org.hibernate.SQL" level="ERROR"/>
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="ERROR"/>
@@ -57,18 +48,16 @@
     <logger name="org.springframework.data.redis" level="ERROR"/>
 
     <!-- ========================
-         5️⃣ App logger
+         4️⃣ App logger
     ========================= -->
     <logger name="com.example.learnperformancetest" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ASYNC_LOGSTASH"/>
     </logger>
 
     <!-- ========================
-         6️⃣ Root logger (fallback)
+         5️⃣ Root logger (fallback)
     ========================= -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ASYNC_LOGSTASH"/>
     </root>
 </configuration>
