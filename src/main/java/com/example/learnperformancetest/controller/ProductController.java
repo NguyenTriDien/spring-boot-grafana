@@ -27,7 +27,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductDto> create(@RequestBody ProductRequest request) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 2000));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -72,7 +72,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 2000));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
