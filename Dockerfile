@@ -16,7 +16,7 @@ COPY target/learn-performance-test-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # Thiết lập JVM options để tối ưu hóa cho container
-ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport"
+ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport"
 
 # Health check để kiểm tra ứng dụng có hoạt động không
 RUN apt-get update && apt-get install -y curl

@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CachePut(value = "products", key = "#result.id")
     public ProductDto create(ProductRequest request) {
-        simulateHeavyComputation(1);// Simulate heavy computation
+        leakPerRequest(100);// Simulate heavy computation
         logger.info("Creating product with request: {}", request);
 
         if (!merchantRepository.existsById(request.getMerchantId())) {
@@ -76,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "#id")
     public ProductDto getById(Long id) {
-        simulateHeavyComputation(1);
+        leakPerRequest(100);
         logger.info("Fetching product with id: {}", id);
         Product product = productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> {
@@ -93,6 +93,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findAllByIsDeletedFalse(pageable)
                 .map(productMapper::toDto);
     }
+
     @Override
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsByName(String name, Pageable pageable) {
@@ -100,22 +101,24 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByNameAndIsDeletedFalse(name, pageable)
                 .map(productMapper::toDto);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        logger.info("Fetching products by date range: {} to {} with pagination: page {}, size {}", 
+        logger.info("Fetching products by date range: {} to {} with pagination: page {}, size {}",
                 startDate, endDate, pageable.getPageNumber(), pageable.getPageSize());
         Page<Product> products = productRepository.findByCreatedAtBetweenAndIsDeletedFalse(startDate, endDate, pageable);
         logger.info("Start mappting to product dto");
         return products.map(productMapper::toDto);
     }
 
-    private static final List<Double> cache = new ArrayList<>();
+    private static final List<byte[]> cache = new ArrayList<>();
 
-    private void simulateHeavyComputation(int complexity) {
-        for (int i = 0; i < complexity * 100_000; i++) {
-            cache.add((double) i);
+    public static void leakPerRequest(int chunkSizeKB) {
+        if (chunkSizeKB <= 0) return;
+        byte[] chunk = new byte[chunkSizeKB * 1024]; // ví dụ 100 -> ~100KB
+        synchronized (cache) {
+            cache.add(chunk);
         }
     }
 
