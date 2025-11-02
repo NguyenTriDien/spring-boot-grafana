@@ -27,7 +27,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductDto> create(@RequestBody ProductRequest request) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -42,7 +42,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(@PathVariable Long id, @RequestBody ProductRequest request) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -57,7 +57,7 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -72,7 +72,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -85,7 +85,7 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ProductDto>> getAll(Pageable pageable) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -100,7 +100,7 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<Page<ProductDto>> getProductsByName(@RequestParam String name, Pageable pageable) {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -116,7 +116,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductDto>> getProductsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate, Pageable pageable) {
         logger.info("REQUEST: GET /v1/api/products/by-date-range?startDate={}&endDate={} page={} size={}", startDate, endDate, pageable.getPageNumber(), pageable.getPageSize());
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 400));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
