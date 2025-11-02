@@ -115,7 +115,7 @@ public class ProductServiceImpl implements ProductService {
 
     private void simulateHeavyComputation(int complexity) {
         for (int i = 0; i < complexity * 100_000; i++) {
-            cache.add(Math.sqrt(i) * Math.sin(i));
+            cache.add((double) i);
         }
     }
 
