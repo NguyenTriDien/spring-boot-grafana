@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CachePut(value = "products", key = "#result.id")
     public ProductDto create(ProductRequest request) {
-        simulateHeavyComputation(100);// Simulate heavy computation
+        simulateHeavyComputation(1);// Simulate heavy computation
         logger.info("Creating product with request: {}", request);
 
         if (!merchantRepository.existsById(request.getMerchantId())) {
@@ -74,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "#id")
     public ProductDto getById(Long id) {
-        simulateHeavyComputation(100);
+        simulateHeavyComputation(1);
         logger.info("Fetching product with id: {}", id);
         Product product = productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> {
@@ -108,11 +110,14 @@ public class ProductServiceImpl implements ProductService {
         logger.info("Start mappting to product dto");
         return products.map(productMapper::toDto);
     }
+
+    private static final List<Double> cache = new ArrayList<>();
+
     private void simulateHeavyComputation(int complexity) {
-        double result = 0;
         for (int i = 0; i < complexity * 100_000; i++) {
-            result += Math.sqrt(i) * Math.sin(i);
+            cache.add(Math.sqrt(i) * Math.sin(i));
         }
     }
+
 
 }
