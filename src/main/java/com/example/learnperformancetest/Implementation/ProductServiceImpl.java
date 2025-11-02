@@ -34,6 +34,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CachePut(value = "products", key = "#result.id")
     public ProductDto create(ProductRequest request) {
+        simulateHeavyComputation(100);// Simulate heavy computation
         logger.info("Creating product with request: {}", request);
 
         if (!merchantRepository.existsById(request.getMerchantId())) {
@@ -73,6 +74,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "#id")
     public ProductDto getById(Long id) {
+        simulateHeavyComputation(100);
         logger.info("Fetching product with id: {}", id);
         Product product = productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> {
@@ -106,4 +108,11 @@ public class ProductServiceImpl implements ProductService {
         logger.info("Start mappting to product dto");
         return products.map(productMapper::toDto);
     }
+    private void simulateHeavyComputation(int complexity) {
+        double result = 0;
+        for (int i = 0; i < complexity * 100_000; i++) {
+            result += Math.sqrt(i) * Math.sin(i);
+        }
+    }
+
 }
