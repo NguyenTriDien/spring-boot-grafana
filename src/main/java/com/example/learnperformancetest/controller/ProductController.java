@@ -26,11 +26,11 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductDto> create(@RequestBody ProductRequest request) {
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         logger.info("REQUEST: POST /v1/api/products body={}", request);
 
         ProductDto response = productService.create(request);
@@ -41,11 +41,11 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(@PathVariable Long id, @RequestBody ProductRequest request) {
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         logger.info("REQUEST: PUT /v1/api/products/{} body={}", id, request);
 
         ProductDto response = productService.update(id, request);
@@ -56,11 +56,11 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         logger.info("REQUEST: DELETE /v1/api/products/{}", id);
 
         productService.delete(id);
@@ -71,11 +71,11 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         logger.info("REQUEST: GET /v1/api/products/{}", id);
         ProductDto response = productService.getById(id);
         logger.info("RESPONSE: status=200 body={}", response.toString());
@@ -84,11 +84,11 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Page<ProductDto>> getAll(Pageable pageable) {
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         logger.info("REQUEST: GET /v1/api/products page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
         Page<ProductDto> response = productService.getAll(pageable);
 
@@ -99,11 +99,11 @@ public class ProductController {
 
     @GetMapping("/search")
     public ResponseEntity<Page<ProductDto>> getProductsByName(@RequestParam String name, Pageable pageable) {
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         logger.info("REQUEST: GET /v1/api/products?name={} page={} size={}", name, pageable.getPageNumber(), pageable.getPageSize());
         Page<ProductDto> response = productService.getProductsByName(name, pageable);
 
@@ -115,11 +115,11 @@ public class ProductController {
     @GetMapping("/by-date-range")
     public ResponseEntity<Page<ProductDto>> getProductsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate, Pageable pageable) {
         logger.info("REQUEST: GET /v1/api/products/by-date-range?startDate={}&endDate={} page={} size={}", startDate, endDate, pageable.getPageNumber(), pageable.getPageSize());
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(ThreadLocalRandom.current().nextInt(200, 300));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         Page<ProductDto> response = productService.getProductsByDateRange(startDate, endDate, pageable);
 
         logger.info("RESPONSE: status=200 body=Page(totalElements={}, totalPages={})", response.getTotalElements(), response.getTotalPages());
