@@ -1,5 +1,5 @@
 # Sử dụng OpenJDK 17 làm base image
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 # Thiết lập thông tin metadata
 LABEL maintainer="demo-app"
