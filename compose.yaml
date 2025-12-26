@@ -87,6 +87,8 @@ services:
         condition: service_healthy
       logstash:
         condition: service_started
+      redis:
+        condition: service_healthy
     networks:
       - demo-network
     healthcheck:
