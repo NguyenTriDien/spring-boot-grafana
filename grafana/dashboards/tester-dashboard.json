@@ -24,8 +24,7 @@
       "type": "timeseries",
       "gridPos": {"x": 12, "y": 0, "w": 12, "h": 7},
       "targets": [
-        {"expr": "(sum(jvm_memory_used_bytes{area=\"heap\"}) / sum(jvm_memory_max_bytes{area=\"heap\"})) * 100", "legendFormat": "Heap RAM %", "refId": "A"},
-        {"expr": "sum(jvm_memory_used_bytes{area=\"heap\"}) / 1024 / 1024", "legendFormat": "Used (MB)", "refId": "B"}
+        {"expr": "(sum(jvm_memory_used_bytes{area=\"heap\"}) / sum(jvm_memory_max_bytes{area=\"heap\"})) * 100", "legendFormat": "Heap RAM %", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
@@ -40,7 +39,7 @@
       "type": "timeseries",
       "gridPos": {"x": 0, "y": 7, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (uri) (rate(http_server_requests_seconds_count{uri=~\"/v1/api/lab/.*\"}[1m]))", "legendFormat": "{{uri}}", "refId": "A"}
+        {"expr": "sum by (uri) (rate(http_server_requests_seconds_count{uri!~\".*actuator.*\"}[1m]))", "legendFormat": "{{uri}}", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
@@ -54,7 +53,7 @@
       "type": "timeseries",
       "gridPos": {"x": 12, "y": 7, "w": 12, "h": 8},
       "targets": [
-        {"expr": "http_server_requests_seconds{quantile=~\"0.9|0.95|0.99\", uri=~\"/v1/api/lab/.*\"}", "legendFormat": "{{uri}} (p{{quantile}})", "refId": "A"}
+        {"expr": "http_server_requests_seconds{quantile=~\"0.9|0.95|0.99\", uri!~\".*actuator.*\"}", "legendFormat": "{{uri}} (p{{quantile}})", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
