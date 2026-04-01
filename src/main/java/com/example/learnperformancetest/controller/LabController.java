@@ -315,7 +315,184 @@ public class LabController {
     }
 
     // ================================================================
-    //  API 9: Healthy API (bình thường)
+    //  API 9: Database Row Lock Contention
+    //  Triệu chứng: Response time tăng, DB connections running tăng
+    // ================================================================
+    @GetMapping("/db-row-lock")
+    public ResponseEntity<?> dbRowLock() {
+        logger.info("LAB: DB Row Lock - updating same row with long transaction");
+
+        try {
+            Connection conn = dataSource.getConnection();
+            try {
+                conn.setAutoCommit(false);
+
+                // Bắt đầu transaction, UPDATE row id=1 và GIỮ LOCK 5 giây
+                Statement stmt = conn.createStatement();
+                stmt.executeUpdate(
+                    "UPDATE account_balances SET balance = balance + 1 WHERE id = 1"
+                );
+
+                // Giữ transaction mở 5 giây → row bị LOCK
+                // Các request khác cũng UPDATE row id=1 sẽ phải CHỜ
+                Thread.sleep(5000);
+
+                conn.commit();
+
+                return ResponseEntity.ok(Map.of(
+                        "status", "completed",
+                        "locked_row_id", 1,
+                        "lock_duration_ms", 5000,
+                        "message", "Row id=1 was locked for 5 seconds during transaction"
+                ));
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", e.getMessage(),
+                    "message", "Lock wait timeout or error occurred"
+            ));
+        }
+    }
+
+    // ================================================================
+    //  API 10: Deadlock
+    //  Triệu chứng: Lỗi 500 do MySQL phát hiện deadlock, TPS giảm
+    // ================================================================
+    @GetMapping("/deadlock")
+    public ResponseEntity<?> deadlock(@RequestParam(defaultValue = "A") String side) {
+        logger.info("LAB: Deadlock - side {} starting cross-lock transaction", side);
+
+        try {
+            Connection conn = dataSource.getConnection();
+            try {
+                conn.setAutoCommit(false);
+                Statement stmt = conn.createStatement();
+
+                if ("A".equalsIgnoreCase(side)) {
+                    // Transaction A: Lock row 1 trước, rồi cố lock row 2
+                    stmt.executeUpdate("UPDATE account_balances SET balance = balance + 1 WHERE id = 1");
+                    Thread.sleep(1000); // Chờ để Transaction B kịp lock row 2
+                    stmt.executeUpdate("UPDATE account_balances SET balance = balance + 1 WHERE id = 2");
+                } else {
+                    // Transaction B: Lock row 2 trước, rồi cố lock row 1 → DEADLOCK!
+                    stmt.executeUpdate("UPDATE account_balances SET balance = balance + 1 WHERE id = 2");
+                    Thread.sleep(1000); // Chờ để Transaction A kịp lock row 1
+                    stmt.executeUpdate("UPDATE account_balances SET balance = balance + 1 WHERE id = 1");
+                }
+
+                conn.commit();
+                return ResponseEntity.ok(Map.of(
+                        "status", "completed",
+                        "side", side,
+                        "message", "Transaction completed without deadlock (lucky timing)"
+                ));
+            } catch (Exception e) {
+                conn.rollback();
+                return ResponseEntity.internalServerError().body(Map.of(
+                        "status", "deadlock_detected",
+                        "side", side,
+                        "error", e.getMessage(),
+                        "message", "MySQL detected DEADLOCK and killed this transaction!"
+                ));
+            } finally {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ================================================================
+    //  API 11: Full Table Scan (Missing Index)
+    //  Triệu chứng: Response time cực cao, DB CPU tăng mạnh
+    // ================================================================
+    @GetMapping("/full-table-scan")
+    public ResponseEntity<?> fullTableScan(@RequestParam(defaultValue = "cao cấp") String keyword) {
+        logger.info("LAB: Full Table Scan - searching 10M records without index");
+
+        try {
+            Connection conn = dataSource.getConnection();
+            try {
+                Statement stmt = conn.createStatement();
+                long start = System.currentTimeMillis();
+
+                // LIKE '%keyword%' trên cột description KHÔNG CÓ INDEX
+                // → MySQL phải quét TOÀN BỘ 10 triệu records!!!
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT id, name, price FROM products " +
+                    "WHERE description LIKE '%" + keyword + "%' " +
+                    "ORDER BY price DESC LIMIT 20"
+                );
+
+                List<Map<String, Object>> results = new ArrayList<>();
+                while (rs.next()) {
+                    results.add(Map.of(
+                            "id", rs.getLong("id"),
+                            "name", rs.getString("name"),
+                            "price", rs.getBigDecimal("price")
+                    ));
+                }
+                long elapsed = System.currentTimeMillis() - start;
+
+                return ResponseEntity.ok(Map.of(
+                        "status", "completed",
+                        "keyword", keyword,
+                        "results_found", results.size(),
+                        "scan_time_ms", elapsed,
+                        "total_records_scanned", "~10,000,000 (FULL TABLE SCAN!)",
+                        "data", results,
+                        "message", "Query scanned ALL records because description has NO INDEX!"
+                ));
+            } finally {
+                conn.close();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ================================================================
+    //  API 12: GC Pressure (Garbage Collection Storm)
+    //  Triệu chứng: Response time có spike do GC pause
+    // ================================================================
+    @GetMapping("/gc-pressure")
+    public ResponseEntity<?> gcPressure() {
+        logger.info("LAB: GC Pressure - creating millions of temporary objects");
+
+        long start = System.currentTimeMillis();
+
+        // Tạo hàng triệu object nhỏ liên tục → GC phải chạy liên tục
+        List<String> tempList = new ArrayList<>();
+        for (int i = 0; i < 3_000_000; i++) {
+            // Mỗi vòng lặp tạo String mới (object trên heap)
+            tempList.add("item_" + i + "_" + System.nanoTime());
+
+            // Mỗi 500K items, xóa hết để GC phải dọn
+            if (i % 500_000 == 0 && i > 0) {
+                tempList.clear();
+            }
+        }
+
+        long elapsed = System.currentTimeMillis() - start;
+
+        return ResponseEntity.ok(Map.of(
+                "status", "completed",
+                "objects_created", 3_000_000,
+                "gc_cycles_triggered", 6,
+                "elapsed_ms", elapsed,
+                "message", "Created 3M objects with periodic clearing to trigger GC storms"
+        ));
+    }
+
+    // ================================================================
+    //  API 13: Healthy API (bình thường)
     //  Dùng để so sánh với các API lỗi
     // ================================================================
     @GetMapping("/healthy")
@@ -329,7 +506,7 @@ public class LabController {
     }
 
     // ================================================================
-    //  API 10: Healthy with Redis Cache (bình thường + cache)
+    //  API 14: Healthy with Redis Cache (bình thường + cache)
     //  Response time cực thấp nhờ cache
     // ================================================================
     @GetMapping("/healthy-cached")

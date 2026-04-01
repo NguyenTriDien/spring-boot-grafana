@@ -337,7 +337,170 @@ Trong thực tế, lỗi này thường xảy ra khi:
 
 ---
 
-## Bài 9 & 10: So sánh với API Healthy
+## Bài 9: Database Row Lock Contention
+
+### API: `GET /v1/api/lab/db-row-lock`
+
+### 🔍 Nguyên nhân gốc
+Code mở transaction, **UPDATE một row** rồi **giữ transaction mở 5 giây** trước khi commit. Trong thời gian này, InnoDB đặt **exclusive row lock** trên row đó → tất cả request khác muốn UPDATE cùng row phải **chờ** cho đến khi transaction hoàn thành.
+
+```
+Transaction 1: BEGIN → UPDATE id=1 → Sleep 5s → COMMIT (giữ lock 5s)
+Transaction 2: BEGIN → UPDATE id=1 → ⏳ BLOCKED... chờ Transaction 1
+Transaction 3: BEGIN → UPDATE id=1 → ⏳ BLOCKED... chờ Transaction 1 + 2
+```
+
+Trong thực tế, lỗi này thường xảy ra khi:
+- Transaction thực hiện quá nhiều logic (gọi external API, tính toán) trong khi giữ lock
+- Nhiều user cùng update 1 record hot (ví dụ: cập nhật số dư tài khoản chung)
+- Batch job update hàng loạt records mà không chia nhỏ transaction
+- `SELECT ... FOR UPDATE` giữ lock quá lâu
+
+### 🎯 Cách nhận biết
+- Request đầu tiên nhanh (~5s), request thứ 2 mất ~10s, thứ 3 mất ~15s (cộng dồn)
+- Response time tăng **tuyến tính** theo số request đang chờ
+- Khác thread-blocked: thread-blocked do code Java, db-row-lock do **MySQL InnoDB**
+- Nếu mỗi request UPDATE row **khác nhau** → nhanh bình thường (chỉ cùng row mới bị)
+
+### 📊 Cách xem trên Grafana
+| Panel | Biểu hiện |
+|-------|-----------|
+| **API Response Time** | 📈 Tăng tuyến tính: 5s, 10s, 15s, 20s... |
+| **Database Connections** | 📈 Running/Pending tăng (connections giữ transaction mở) |
+| **HikariCP Connection Pool** | 📈 Active tăng (connections bị giữ chờ lock) |
+| **Database CPU** | ⚖️ Bình thường (MySQL chỉ chờ, không tính toán) |
+
+### 🧪 Cách test bằng JMeter
+- Thread Group: **10 threads**, Ramp-up: **1s** (quan trọng: gửi gần như đồng thời), Loop: 3
+- HTTP Request: `GET http://localhost:8082/v1/api/lab/db-row-lock`
+
+---
+
+## Bài 10: Deadlock
+
+### API: `GET /v1/api/lab/deadlock?side=A` và `GET /v1/api/lab/deadlock?side=B`
+
+### 🔍 Nguyên nhân gốc
+Hai transaction **khóa chéo nhau** (circular lock):
+
+```
+Transaction A: Lock row 1 → Sleep 1s → Cố lock row 2 → ❌ BỊ BLOCK (B đang giữ row 2)
+Transaction B: Lock row 2 → Sleep 1s → Cố lock row 1 → ❌ BỊ BLOCK (A đang giữ row 1)
+```
+
+Cả hai đều chờ nhau → **DEADLOCK**! MySQL InnoDB phát hiện và **kill 1 transaction** (trả về lỗi), transaction còn lại hoàn thành.
+
+Trong thực tế, lỗi này thường xảy ra khi:
+- 2 API cùng update 2+ bảng/rows nhưng theo **thứ tự khác nhau**
+- Transfer tiền: API A chuyển từ tài khoản 1→2, API B chuyển từ 2→1 đồng thời
+- Batch processing + real-time API cùng chạm vào cùng dữ liệu
+- INSERT/UPDATE với FOREIGN KEY trigger lock cascade
+
+### 🎯 Cách nhận biết
+- Một số request trả về **HTTP 500** với lỗi `Deadlock found when trying to get lock`
+- Không phải tất cả request đều thất bại — MySQL chỉ kill **1 bên**, bên kia thành công
+- Xuất hiện **ngẫu nhiên** khi traffic cao (khó reproduce khi test manual)
+
+### 📊 Cách xem trên Grafana
+| Panel | Biểu hiện |
+|-------|-----------|
+| **API TPS** | 📉 TPS giảm, một số request bị lỗi → Grafana tính TPS thấp hơn |
+| **API Response Time** | 📈 Có spike ~1-2s (thời gian chờ lock trước khi deadlock detect) |
+| **Database CPU** | ⚖️ Bình thường |
+
+### 🧪 Cách test bằng JMeter
+Cần **2 Thread Group chạy đồng thời**:
+- **Thread Group A**: 10 threads, `GET http://localhost:8082/v1/api/lab/deadlock?side=A`
+- **Thread Group B**: 10 threads, `GET http://localhost:8082/v1/api/lab/deadlock?side=B`
+- Cả 2 group **bắt đầu cùng lúc** → tạo ra deadlock
+
+---
+
+## Bài 11: Full Table Scan (Missing Index)
+
+### API: `GET /v1/api/lab/full-table-scan?keyword=cao+cấp`
+
+### 🔍 Nguyên nhân gốc
+Câu SQL sử dụng `LIKE '%keyword%'` trên cột `description` — cột này **không có INDEX**:
+
+```sql
+SELECT id, name, price FROM products 
+WHERE description LIKE '%cao cấp%'    -- ← KHÔNG dùng được index!
+ORDER BY price DESC LIMIT 20
+```
+
+Vì dùng `%` ở **đầu chuỗi**, MySQL **không thể dùng bất kỳ index nào** → phải quét **TOÀN BỘ 10 triệu records** một cách tuần tự.
+
+Trong thực tế, lỗi này thường xảy ra khi:
+- Tìm kiếm full-text bằng `LIKE '%...%'` thay vì dùng Full-Text Index
+- Quên tạo index cho cột được dùng trong WHERE/JOIN/ORDER BY
+- Query trên bảng nhỏ lúc dev → deploy lên production bảng có hàng triệu records
+- Composite index không đúng thứ tự cột
+
+### 🎯 Cách nhận biết
+- Response time **cực cao** (có thể 10-30 giây trên 10M records)
+- DB CPU tăng **rất mạnh** (phải đọc toàn bộ data từ disk)
+- Response body chứa trường `scan_time_ms` cho thấy thời gian query
+- Nếu `EXPLAIN` câu SQL sẽ thấy `type: ALL` (full scan)
+
+### 📊 Cách xem trên Grafana
+| Panel | Biểu hiện |
+|-------|-----------|
+| **API Response Time** | 📈 **Cực cao** (10-30s), phụ thuộc vào tốc độ disk |
+| **Database CPU** | 📈 **Tăng rất mạnh** — khác biệt rõ nhất so với các bug khác |
+| **Database RAM** | 📈 Tăng (MySQL buffer pool phải load data) |
+| **Database Connections** | Running tăng (connection bị giữ chờ query hoàn thành) |
+| **Top 10 Slowest SQL** | Câu LIKE sẽ xuất hiện ở **top 1** |
+
+### 🧪 Cách test bằng JMeter
+- Thread Group: **3 threads**, Ramp-up: 1s, Loop: 5
+- HTTP Request: `GET http://localhost:8082/v1/api/lab/full-table-scan?keyword=cao+cấp`
+- ⚠️ **Dùng ít threads** vì mỗi query đã rất nặng trên 10M records
+
+---
+
+## Bài 12: GC Pressure (Garbage Collection Storm)
+
+### API: `GET /v1/api/lab/gc-pressure`
+
+### 🔍 Nguyên nhân gốc
+Code tạo **3 triệu String objects** liên tiếp, mỗi 500K items lại xóa hết → JVM Garbage Collector phải chạy liên tục để dọn dẹp. Trong lúc GC chạy (**Stop-the-World pause**), tất cả thread xử lý request bị **đóng băng tạm thời**.
+
+```java
+for (int i = 0; i < 3_000_000; i++) {
+    tempList.add("item_" + i + "_" + System.nanoTime()); // tạo object mới
+    if (i % 500_000 == 0) tempList.clear();              // xóa → GC phải dọn
+}
+```
+
+Trong thực tế, lỗi này thường xảy ra khi:
+- Xử lý file lớn đọc từng dòng tạo object
+- String concatenation trong vòng lặp (nên dùng StringBuilder)
+- Autoboxing: `int` → `Integer` trong collection lớn
+- JSON parsing tạo nhiều temporary object
+- Report/export tạo hàng triệu cell objects
+
+### 🎯 Cách nhận biết
+- Response time **không ổn định** — có lúc nhanh, có lúc bị **spike đột ngột** (do GC pause)
+- CPU tăng nhưng **phần lớn là GC overhead**, không phải business logic
+- RAM dao động lên xuống **răng cưa** (tăng nhanh rồi drop khi GC dọn)
+- Khác CPU-heavy: CPU-heavy luôn chậm đều, GC-pressure chậm **không đều** (spike)
+
+### 📊 Cách xem trên Grafana
+| Panel | Biểu hiện |
+|-------|-----------|
+| **App CPU Usage** | 📈 Tăng cao, nhưng phần lớn là **GC overhead** |
+| **App Heap RAM Usage** | 📈📉 **Răng cưa** — tăng nhanh rồi drop đột ngột khi GC chạy |
+| **API Response Time** | 📈 Có **spike không đều** (GC pause gây latency spike) |
+| **API TPS** | 📉 Giảm không đều, có lúc bình thường, có lúc giảm đột ngột |
+
+### 🧪 Cách test bằng JMeter
+- Thread Group: **10 threads**, Ramp-up: 3s, Loop: 50
+- HTTP Request: `GET http://localhost:8082/v1/api/lab/gc-pressure`
+
+---
+
+## Bài 13 & 14: So sánh với API Healthy
 
 ### API: `GET /v1/api/lab/healthy` và `GET /v1/api/lab/healthy-cached`
 
@@ -380,8 +543,12 @@ docker compose restart app
 | 6 | thread-blocked | Thread Starvation | JVM Threads + TPS | Blocked threads tăng, TPS ~0.3 |
 | 7 | unbounded-cache | Cache OOM | App Heap RAM | RAM tăng theo số key, response nhanh |
 | 8 | large-payload | Oversized Response | App Heap RAM + Response Time | RAM tăng đột ngột rồi giảm |
-| 9 | healthy | ✅ Baseline | Tất cả | Mọi chỉ số bình thường |
-| 10 | healthy-cached | ✅ Baseline + Cache | Tất cả | Response time cực thấp |
+| 9 | db-row-lock | Row Lock Contention | Response Time + DB Connections | Response tăng tuyến tính 5s, 10s, 15s |
+| 10 | deadlock | Deadlock | TPS (xuất hiện lỗi 500) | Một số request HTTP 500, không đều |
+| 11 | full-table-scan | Missing Index | DB CPU + Response Time | DB CPU tăng rất mạnh, query >10s |
+| 12 | gc-pressure | GC Storm | App Heap RAM (răng cưa) | RAM lên xuống răng cưa, spike không đều |
+| 13 | healthy | ✅ Baseline | Tất cả | Mọi chỉ số bình thường |
+| 14 | healthy-cached | ✅ Baseline + Cache | Tất cả | Response time cực thấp |
 
 ---
 
@@ -397,3 +564,8 @@ docker compose restart app
 | thread-blocked | | | | |
 | unbounded-cache | | | | |
 | large-payload | | | | |
+| db-row-lock | | | | |
+| deadlock | | | | |
+| full-table-scan | | | | |
+| gc-pressure | | | | |
+

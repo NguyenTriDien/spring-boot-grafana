@@ -53,3 +53,20 @@ INSERT INTO products (name, description, price, merchant_id) VALUES
 ('DJI Mini 3 Pro', 'Drone camera nhỏ gọn', 15000000, 1),
 ('Canon EOS R6', 'Camera mirrorless full-frame', 40000000, 1),
 ('Nikon Z6 II', 'Camera mirrorless với 2 card slots', 35000000, 1);
+
+-- ==========================================
+-- Bảng account_balances cho Lab DB Lock & Deadlock
+-- ==========================================
+CREATE TABLE IF NOT EXISTS account_balances (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    account_name VARCHAR(100) NOT NULL,
+    balance DECIMAL(15,2) NOT NULL DEFAULT 0,
+    updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO account_balances (account_name, balance) VALUES
+('Alice', 10000000.00),
+('Bob', 5000000.00),
+('Charlie', 8000000.00),
+('Diana', 3000000.00),
+('Eve', 15000000.00);
