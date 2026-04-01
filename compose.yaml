@@ -228,6 +228,7 @@ services:
     image: telegraf:latest
     container_name: telegraf
     user: root
+    entrypoint: ["telegraf"]
     restart: unless-stopped
     ports:
       - "9273:9273"
