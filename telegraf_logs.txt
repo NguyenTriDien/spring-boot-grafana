@@ -1,0 +1,45 @@
+2026-04-01T04:29:24Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:24Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:24Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["perdevice" "container_names" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:26Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:26Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:26Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "total" "perdevice"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:28Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:28Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:28Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "total" "perdevice"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:30Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:30Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:30Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:32Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:32Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:32Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:34Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:34Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:34Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:38Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:38Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:38Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:46Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:46Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:46Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:29:59Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:29:59Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:29:59Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:30:26Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:30:26Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:30:26Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["perdevice" "total" "container_names"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:31:18Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:31:18Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:31:18Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["total" "container_names" "perdevice"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:32:19Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:32:19Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:32:19Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["container_names" "perdevice" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:33:20Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:33:20Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:33:20Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["total" "container_names" "perdevice"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:34:21Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:34:21Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:34:21Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["perdevice" "container_names" "total"], but they were not used; this is either a typo or this config option does not exist in this version
+2026-04-01T04:35:22Z W! Strict environment variable handling is the new default starting with v1.38.0! If your configuration does not work with strict handling please explicitly add the --non-strict-env-handling flag to switch to the previous behavior!
+2026-04-01T04:35:22Z I! Loading config: /etc/telegraf/telegraf.conf
+2026-04-01T04:35:22Z E! loading config file /etc/telegraf/telegraf.conf failed: plugin inputs.docker: line 19: configuration specified the fields ["total" "container_names" "perdevice"], but they were not used; this is either a typo or this config option does not exist in this version
