@@ -14,8 +14,20 @@
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "palette-classic"},
-          "custom": {"axisPlacement": "left", "fillOpacity": 10, "lineWidth": 2},
-          "unit": "percent"
+          "custom": {
+            "axisPlacement": "left", 
+            "fillOpacity": 10, 
+            "lineWidth": 2,
+            "thresholdsStyle": {"mode": "area"}
+          },
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 80}
+            ]
+          }
         }
       }
     },
@@ -29,8 +41,20 @@
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "palette-classic"},
-          "custom": {"axisPlacement": "left", "fillOpacity": 10, "lineWidth": 2},
-          "unit": "percent"
+          "custom": {
+            "axisPlacement": "left", 
+            "fillOpacity": 10, 
+            "lineWidth": 2,
+            "thresholdsStyle": {"mode": "area"}
+          },
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 80}
+            ]
+          }
         }
       }
     },
@@ -72,7 +96,17 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "color": {"mode": "palette-classic"}
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "thresholdsStyle": {"mode": "area"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 80}
+            ]
+          }
         }
       }
     },
@@ -86,7 +120,17 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "color": {"mode": "palette-classic"}
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "thresholdsStyle": {"mode": "area"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 80}
+            ]
+          }
         }
       }
     },
