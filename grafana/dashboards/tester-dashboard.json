@@ -1,83 +1,130 @@
 {
-  "title": "Tester Overview",
-  "tags": ["tester", "performance", "overview"],
+  "title": "Tester Overview v2",
+  "tags": ["tester", "performance"],
   "timezone": "browser",
+  "refresh": "10s",
   "panels": [
     {
       "title": "App CPU Usage (%)",
-      "type": "gauge",
-      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 8},
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7},
       "targets": [
-        {"expr": "process_cpu_usage{job=\"spring-boot-app\"} * 100", "refId": "A"}
+        {"expr": "process_cpu_usage{job=\"spring-boot-app\"} * 100", "legendFormat": "App CPU", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
-          "min": 0, "max": 100,
-          "unit": "percent",
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 80, "color": "red"}]}
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "left", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "percent"
         }
       }
     },
     {
       "title": "App Heap RAM Usage (%)",
-      "type": "gauge",
-      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 8},
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 7},
       "targets": [
-        {"expr": "(sum(jvm_memory_used_bytes{area=\"heap\"}) / sum(jvm_memory_max_bytes{area=\"heap\"})) * 100", "refId": "A"}
+        {"expr": "(sum(jvm_memory_used_bytes{area=\"heap\"}) / sum(jvm_memory_max_bytes{area=\"heap\"})) * 100", "legendFormat": "Heap RAM", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
-          "min": 0, "max": 100,
-          "unit": "percent",
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 85, "color": "red"}]}
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "left", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "title": "API Transactions Per Second (TPS)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 7, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (uri) (rate(http_server_requests_seconds_count{uri!~\".*actuator.*\"}[1m]))", "legendFormat": "{{uri}}", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "unit": "reqps"
+        }
+      }
+    },
+    {
+      "title": "API Response Time (p90, p95, p99) in Seconds",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 7, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "http_server_requests_seconds{quantile=~\"0.9|0.95|0.99\", uri!~\".*actuator.*\"}", "legendFormat": "{{uri}} (p{{quantile}})", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "unit": "s"
         }
       }
     },
     {
       "title": "Database CPU Usage (%)",
-      "type": "gauge",
-      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 8},
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 15, "w": 8, "h": 7},
       "targets": [
-        {"expr": "docker_container_cpu_usage_percent{container_name=\"demo-mysql\"}", "refId": "A"}
+        {"expr": "docker_container_cpu_usage_percent{container_name=\"demo-mysql\"}", "legendFormat": "DB CPU", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
-          "min": 0, "max": 100,
           "unit": "percent",
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "dark-green"}, {"value": 80, "color": "dark-red"}]}
+          "color": {"mode": "palette-classic"}
         }
       }
     },
     {
       "title": "Database RAM Usage (%)",
-      "type": "gauge",
-      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 8},
+      "type": "timeseries",
+      "gridPos": {"x": 8, "y": 15, "w": 8, "h": 7},
       "targets": [
-        {"expr": "docker_container_mem_usage_percent{container_name=\"demo-mysql\"}", "refId": "A"}
+        {"expr": "docker_container_mem_usage_percent{container_name=\"demo-mysql\"}", "legendFormat": "DB RAM", "refId": "A"}
       ],
       "fieldConfig": {
         "defaults": {
-          "min": 0, "max": 100,
           "unit": "percent",
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "blue"}, {"value": 80, "color": "red"}]}
+          "color": {"mode": "palette-classic"}
         }
       }
     },
     {
       "title": "Database Connections",
       "type": "timeseries",
-      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8},
+      "gridPos": {"x": 16, "y": 15, "w": 8, "h": 7},
       "targets": [
-        {"expr": "mysql_global_status_threads_connected", "legendFormat": "Connected/Active", "refId": "A"},
+        {"expr": "mysql_global_status_threads_connected", "legendFormat": "Active/Connected", "refId": "A"},
         {"expr": "mysql_global_status_threads_running", "legendFormat": "Running/Pending", "refId": "B"},
         {"expr": "mysql_global_variables_max_connections", "legendFormat": "Total Capacity", "refId": "C"}
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "title": "Top 10 Slowest SQL Queries (Avg CPU Time)",
+      "type": "table",
+      "gridPos": {"x": 0, "y": 22, "w": 24, "h": 8},
+      "targets": [
+        {
+          "expr": "topk(10, sum by(digest_text) (rate(mysql_perf_schema_events_statements_cpu_time_seconds_total{schema=\"demo_db\"}[5m])) / sum by(digest_text) (rate(mysql_perf_schema_events_statements_total{schema=\"demo_db\"}[5m]) > 0))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {"align": "auto"}
+        }
+      }
     }
   ],
   "schemaVersion": 36,
-  "version": 1
+  "version": 2
 }
