@@ -66,27 +66,30 @@ public class LabController {
     // ================================================================
     @GetMapping("/cpu-heavy")
     public ResponseEntity<?> cpuHeavy() {
-        logger.info("LAB: CPU Heavy - generating heavy computation");
+        logger.info("LAB: CPU Heavy - generating heavy mathematical computation");
 
-        // Tạo mảng 2 triệu phần tử random và sort
-        List<Double> data = new ArrayList<>(2_000_000);
-        for (int i = 0; i < 2_000_000; i++) {
-            data.add(Math.random());
+        // Tính pi bằng chuỗi Gregory-Leibniz với 50 triệu vòng lặp
+        // Cách này ép CỰC MẠNH CPU nhưng KHÔNG DÙNG TỚI RAM (vì chỉ dùng biến nguyên thủy double)
+        double pi = 0;
+        double sign = 1.0;
+        for (long i = 1; i <= 100_000_000L; i += 2) {
+            pi += sign * (4.0 / i);
+            sign = -sign;
         }
-        Collections.sort(data);
 
-        // Hash kết quả nhiều lần để tăng CPU usage
+        // Hash kết quả nhiều lần để tăng CPU usage chuỗi (string manipulation)
         try {
-            String hash = String.valueOf(data.hashCode());
+            String hash = String.valueOf(pi);
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 5000; i++) {
                 byte[] digest = md.digest(hash.getBytes());
                 hash = Base64.getEncoder().encodeToString(digest);
             }
             return ResponseEntity.ok(Map.of(
                     "status", "completed",
-                    "hash", hash,
-                    "elements_sorted", data.size()
+                    "hash_final", hash.substring(0, 20) + "...",
+                    "pi_calculated", pi,
+                    "iterations", 50_000_000L
             ));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
