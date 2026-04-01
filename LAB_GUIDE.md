@@ -586,6 +586,60 @@ Trong thực tế, lỗi này thường xảy ra khi:
 
 ---
 
+## Bài 12.1: Database CPU Heavy
+
+### API: `GET /v1/api/lab/db-cpu-heavy`
+
+### 🔍 Nguyên nhân gốc
+Câu query sử dụng hàm `BENCHMARK()` của MySQL để lặp lại việc tính toán băm `MD5(RAND())` mười triệu lần. Hàm này được sinh ra để test performance nội bộ MySQL, và nó sẽ ngay lập tức kéo 1 DB CPU core lên 100% trong vài giây.
+
+Trong thực tế, lỗi này thường xảy ra khi:
+- Sử dụng các hàm xử lý chuỗi (String manipulation), JSON processing nặng trực tiếp trong `SELECT` hoặc `WHERE`.
+- Các câu query JOIN quá phức tạp trên hàng triệu dòng dữ liệu.
+- Tính toán toán học hoặc gom nhóm (`GROUP BY`) cực kỳ phức tạp trên dữ liệu lớn.
+
+### 📊 Cách xem trên Grafana
+| Panel | Biểu hiện |
+|-------|-----------|
+| **Database CPU Usage (%)** | 📈 Tăng vọt lên 100% (hoặc hơn tuỳ số core) |
+| **App CPU Usage (%)** | ⚖️ Rất thấp, vì App chỉ đứng đợi MySQL làm việc |
+| **API Response Time** | 📈 Tăng lên vài giây |
+
+### 🧪 Cách test bằng JMeter
+- Bạn dùng JMeter tạo 1 copy thread group bất kỳ và đổi tên thành "Bug 12.1 - DB CPU Heavy"
+- HTTP Request: `GET http://localhost:8082/v1/api/lab/db-cpu-heavy`
+- Thread Group: **10 threads**, Loop: 30
+
+---
+
+## Bài 12.2: Database RAM Heavy (Database Memory Bloat)
+
+### API: `GET /v1/api/lab/db-ram-heavy`
+
+### 🔍 Nguyên nhân gốc
+API này tăng kích thước giới hạn bảng tạm (`tmp_table_size`, `max_heap_table_size`) lên 1GB, sau đó ép MySQL thực hiện subquery tạo ra dữ liệu padding rất lớn (~72KB mỗi dòng) rồi `ORDER BY RAND()`.
+Điều này khiến MySQL phải nạp khối lượng dữ liệu khổng lồ đó vào RAM để phục vụ việc sắp xếp ngẫu nhiên (In-memory Sort Buffer). RAM DB sẽ tăng vọt hàng trăm MB đột ngột!
+
+Trong thực tế, lỗi này thường xảy ra khi:
+- `ORDER BY` hoặc `GROUP BY` trên số lượng lớn dữ liệu mà không có Index hỗ trợ.
+- Fetch quá nhiều field rác (`SELECT *` chứa cột LONGTEXT hoặc BLOB) rồi thực hiện JOIN.
+- MySQL không đủ RAM gây tràn sort buffer và OOM Killer.
+
+### 📊 Cách xem trên Grafana
+| Panel | Biểu hiện |
+|-------|-----------|
+| **Database RAM Usage (%)** | 📈 Tăng vọt thành bậc thang, tạo đỉnh nhọn hoặc giữ neo cao tuỳ cấu hình MySQL |
+| **App Heap RAM Usage (%)** | ⚖️ Rất thấp, vì database gánh toàn bộ dữ liệu |
+| **Database CPU Usage (%)** | 📈 Tăng nhẹ (do overhead RAM allocation) |
+
+### 🧪 Cách test bằng JMeter
+- Bạn dùng JMeter tạo 1 copy thread group bất kỳ và đổi tên thành "Bug 12.2 - DB RAM Heavy"
+- HTTP Request: `GET http://localhost:8082/v1/api/lab/db-ram-heavy`
+- Thread Group: **5 threads**, Loop: 10
+- ⚠️ Cảnh báo: Chạy nhiều thread có thể gây sập container Database do hết RAM!
+
+---
+
 ## Bài 13 & 14: So sánh với API Healthy
 
 ### API: `GET /v1/api/lab/healthy` và `GET /v1/api/lab/healthy-cached`

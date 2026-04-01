@@ -495,6 +495,85 @@ public class LabController {
     }
 
     // ================================================================
+    //  API 12.1: DB CPU Heavy
+    //  Triệu chứng: Database CPU tăng 100% nhưng App CPU thấp
+    // ================================================================
+    @GetMapping("/db-cpu-heavy")
+    public ResponseEntity<?> dbCpuHeavy() {
+        logger.info("LAB: DB CPU Heavy - Running BENCHMARK on MySQL");
+        try {
+            Connection conn = dataSource.getConnection();
+            try {
+                Statement stmt = conn.createStatement();
+                long start = System.currentTimeMillis();
+                
+                // Hàm BENCHMARK(count, expr) ép MySQL thực thi biểu thức liên tục
+                // 10 triệu biến đổi MD5 sẽ ngốn ~1-2 giây max 100% CPU trên DB
+                stmt.execute("SELECT BENCHMARK(10000000, MD5(RAND()))");
+                
+                long elapsed = System.currentTimeMillis() - start;
+                return ResponseEntity.ok(Map.of(
+                        "status", "completed",
+                        "db_cpu_spike", "expected",
+                        "time_ms", elapsed,
+                        "message", "MySQL just burned 100% CPU calculating MD5 10M times!"
+                ));
+            } finally {
+                conn.close();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ================================================================
+    //  API 12.2: DB RAM Heavy (Memory Bloat in MySQL)
+    //  Triệu chứng: Database RAM tăng vọt, nguy cơ DB bị OOM (Out Of Memory)
+    // ================================================================
+    @GetMapping("/db-ram-heavy")
+    public ResponseEntity<?> dbRamHeavy() {
+        logger.info("LAB: DB RAM Heavy - Creating massive temporary tables in MySQL");
+        try {
+            Connection conn = dataSource.getConnection();
+            try {
+                Statement stmt = conn.createStatement();
+                long start = System.currentTimeMillis();
+                
+                // Tăng giới hạn RAM tạo bảng tạm (tmp_table_size) của session này lên ~1GB
+                // Để ép DB giữ data này trên RAM, không ghi ra đĩa cứng!
+                stmt.execute("SET SESSION tmp_table_size = 1073741824");
+                stmt.execute("SET SESSION max_heap_table_size = 1073741824");
+
+                // Sub query: giới hạn 10000 dòng.
+                // Hàm REPEAT bơm chuỗi dài 2000 lần UUID = ~72KB mỗi dòng.
+                // 10k dòng * 72KB = ~720MB RAM trên DB server! Hàm ORDER BY RAND() ép DB sort toàn bộ trên RAM.
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT COUNT(*) FROM (" +
+                    "  SELECT id, REPEAT(CAST(UUID() AS CHAR), 2000) AS padding " +
+                    "  FROM (SELECT id FROM products LIMIT 10000) sub " +
+                    "  ORDER BY RAND() " +
+                    ") tempTable"
+                );
+                rs.next();
+                int result = rs.getInt(1);
+                long elapsed = System.currentTimeMillis() - start;
+                
+                return ResponseEntity.ok(Map.of(
+                        "status", "completed",
+                        "db_ram_spike", "expected",
+                        "temp_table_rows", result,
+                        "time_ms", elapsed,
+                        "message", "MySQL generated and sorted a ~720MB temporary table entirely in its RAM!"
+                ));
+            } finally {
+                conn.close();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ================================================================
     //  API 13: Healthy API (bình thường)
     //  Dùng để so sánh với các API lỗi
     // ================================================================
