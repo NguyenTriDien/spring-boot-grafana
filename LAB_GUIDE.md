@@ -26,6 +26,92 @@ Học viên sẽ sử dụng **JMeter** để tạo tải lên các API có lỗ
 
 ---
 
+## Hướng dẫn sử dụng file JMeter (.jmx)
+
+File test plan đã được cấu hình sẵn tại: **`jmeter/performance-lab.jmx`**
+
+### Mở file JMX
+
+1. Khởi động **Apache JMeter** (phiên bản 5.x trở lên)
+2. Vào **File → Open** → chọn file `jmeter/performance-lab.jmx`
+3. Cấu trúc Test Plan sẽ hiển thị như sau:
+
+```
+📁 Performance Lab Test Plan
+├── ⚙️ HTTP Request Defaults (localhost:8082)
+├── 📊 View Results Tree
+├── 📊 Summary Report
+├── ❌ Bug 01 - CPU Overload          (disabled)
+├── ❌ Bug 02 - Memory Leak           (disabled)
+├── ❌ Bug 03 - Connection Leak       (disabled)
+├── ❌ Bug 04 - N+1 Query             (disabled)
+├── ❌ Bug 05 - Slow Query            (disabled)
+├── ❌ Bug 06 - Thread Starvation     (disabled)
+├── ❌ Bug 07 - Unbounded Cache       (disabled)
+├── ❌ Bug 08 - Large Payload         (disabled)
+├── ❌ Bug 09 - DB Row Lock           (disabled)
+├── ❌ Bug 10 - Deadlock (Side A)     (disabled)
+├── ❌ Bug 10 - Deadlock (Side B)     (disabled)
+├── ❌ Bug 11 - Full Table Scan       (disabled)
+├── ❌ Bug 12 - GC Pressure           (disabled)
+├── ❌ Healthy - Baseline             (disabled)
+├── ❌ Healthy - Cached Baseline      (disabled)
+└── ❌ RESET - Cleanup                (disabled)
+```
+
+### Cách chạy từng bài Lab
+
+**Bước 1:** Click phải vào Thread Group muốn test → chọn **Enable**
+
+**Bước 2:** Nhấn nút **▶️ Start** (hoặc Ctrl+R) để bắt đầu test
+
+**Bước 3:** Mở **Grafana Dashboard** ([http://localhost:3000](http://localhost:3000)) để quan sát
+
+**Bước 4:** Sau khi test xong, nhấn **⏹ Stop** và **Disable** Thread Group vừa test
+
+**Bước 5:** Nếu test các bài leak (Memory, Connection, Cache), **Enable** group **RESET - Cleanup** rồi chạy 1 lần để dọn dẹp
+
+### Lưu ý quan trọng
+
+| Lưu ý | Chi tiết |
+|-------|---------|
+| 🔴 **Chỉ enable 1 bug tại 1 thời điểm** | Nếu chạy nhiều bug cùng lúc, triệu chứng sẽ trộn lẫn, khó phân biệt trên Dashboard |
+| 🔴 **Deadlock cần enable CẢ 2 group** | Bài Deadlock phải enable đồng thời **Side A** + **Side B** mới tái tạo được deadlock |
+| 🟡 **Reset sau bài Leak** | Bài 2 (Memory), bài 3 (Connection), bài 7 (Cache) sẽ leak tài nguyên. Sau khi test xong **phải chạy RESET** |
+| 🟢 **Thay đổi Host/Port** | Nếu app không chạy trên `localhost:8082`, sửa biến `BASE_HOST` và `BASE_PORT` trong **User Defined Variables** ở đầu Test Plan |
+| 🟢 **Xem kết quả** | Click vào **View Results Tree** để xem chi tiết từng request. Click **Summary Report** để xem thống kê tổng hợp (TPS, Avg, Min, Max, Error%) |
+
+### Bảng cấu hình Thread Group
+
+| Thread Group | Threads | Ramp-up | Loop | Tổng requests |
+|-------------|---------|---------|------|---------------|
+| Bug 01 - CPU Overload | 20 | 5s | 50 | 1,000 |
+| Bug 02 - Memory Leak | 5 | 2s | 100 | 500 |
+| Bug 03 - Connection Leak | 5 | 2s | 30 | 150 |
+| Bug 04 - N+1 Query | 10 | 3s | 20 | 200 |
+| Bug 05 - Slow Query | 5 | 2s | 10 | 50 |
+| Bug 06 - Thread Starvation | 20 | 1s | 5 | 100 |
+| Bug 07 - Unbounded Cache | 10 | 3s | 200 | 2,000 |
+| Bug 08 - Large Payload | 5 | 2s | 5 | 25 |
+| Bug 09 - DB Row Lock | 10 | 1s | 3 | 30 |
+| Bug 10 - Deadlock (A+B) | 10+10 | 1s | 5 | 100 |
+| Bug 11 - Full Table Scan | 3 | 1s | 5 | 15 |
+| Bug 12 - GC Pressure | 10 | 3s | 50 | 500 |
+| Healthy Baseline | 20 | 5s | 100 | 2,000 |
+| Healthy Cached | 20 | 5s | 100 | 2,000 |
+
+### Quy trình demo đề xuất
+
+```
+1. Chạy "Healthy - Baseline" trước ──→ Quan sát Dashboard bình thường (baseline)
+2. Disable Baseline, Enable Bug muốn demo ──→ Quan sát sự thay đổi trên Dashboard
+3. Phân tích: Panel nào thay đổi? Thay đổi thế nào?
+4. Dừng test, chạy RESET nếu cần
+5. Lặp lại với Bug tiếp theo
+```
+
+---
+
 ## Sơ đồ Dashboard Grafana
 
 ```

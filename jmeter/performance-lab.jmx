@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Performance Lab Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments">Lab demo: 12 API lỗi performance + 2 API healthy. Mỗi Thread Group là 1 bài lab. Enable từng group để test.</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="BASE_HOST" elementType="Argument">
+            <stringProp name="Argument.name">BASE_HOST</stringProp>
+            <stringProp name="Argument.value">localhost</stringProp>
+          </elementProp>
+          <elementProp name="BASE_PORT" elementType="Argument">
+            <stringProp name="Argument.name">BASE_PORT</stringProp>
+            <stringProp name="Argument.value">8082</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+
+      <!-- ============================================ -->
+      <!-- HTTP Request Defaults -->
+      <!-- ============================================ -->
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+          <collectionProp name="Arguments.arguments"/>
+        </elementProp>
+        <stringProp name="HTTPSampler.domain">${BASE_HOST}</stringProp>
+        <stringProp name="HTTPSampler.port">${BASE_PORT}</stringProp>
+        <stringProp name="HTTPSampler.protocol">http</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+
+      <!-- ============================================ -->
+      <!-- View Results Tree (Global) -->
+      <!-- ============================================ -->
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+
+      <!-- ============================================ -->
+      <!-- Summary Report (Global) -->
+      <!-- ============================================ -->
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+
+      <!-- ============================================ -->
+      <!-- BUG 1: CPU Overload -->
+      <!-- 20 threads, ramp-up 5s, loop 50 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 01 - CPU Overload" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">50</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">20</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/cpu-heavy" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/cpu-heavy</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 2: Memory Leak -->
+      <!-- 5 threads, ramp-up 2s, loop 100 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 02 - Memory Leak" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">100</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">2</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/memory-leak" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/memory-leak</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 3: Connection Leak -->
+      <!-- 5 threads, ramp-up 2s, loop 30 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 03 - Connection Leak" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">30</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">2</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/connection-leak" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/connection-leak</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 4: N+1 Query -->
+      <!-- 10 threads, ramp-up 3s, loop 20 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 04 - N+1 Query" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">20</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">3</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/n-plus-one" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/n-plus-one</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 5: Slow Query -->
+      <!-- 5 threads, ramp-up 2s, loop 10 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 05 - Slow Query" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">10</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">2</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/slow-query" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/slow-query</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 6: Thread Starvation -->
+      <!-- 20 threads, ramp-up 1s, loop 5 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 06 - Thread Starvation" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">5</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">20</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/thread-blocked" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/thread-blocked</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 7: Unbounded Cache -->
+      <!-- 10 threads, ramp-up 3s, loop 200 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 07 - Unbounded Cache" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">200</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">3</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/unbounded-cache" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="key" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">key</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/unbounded-cache</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 8: Large Payload -->
+      <!-- 5 threads, ramp-up 2s, loop 5 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 08 - Large Payload" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">5</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">2</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/large-payload" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/large-payload</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 9: DB Row Lock -->
+      <!-- 10 threads, ramp-up 1s, loop 3 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 09 - DB Row Lock" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">3</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/db-row-lock" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/db-row-lock</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 10: Deadlock (Side A) -->
+      <!-- 10 threads, ramp-up 1s, loop 5 -->
+      <!-- PHẢI CHẠY ĐỒNG THỜI VỚI Side B -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 10 - Deadlock (Side A)" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">5</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/deadlock?side=A" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="side" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.name">side</stringProp>
+                <stringProp name="Argument.value">A</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/deadlock</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 10: Deadlock (Side B) -->
+      <!-- 10 threads, ramp-up 1s, loop 5 -->
+      <!-- PHẢI CHẠY ĐỒNG THỜI VỚI Side A -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 10 - Deadlock (Side B)" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">5</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/deadlock?side=B" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="side" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.name">side</stringProp>
+                <stringProp name="Argument.value">B</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/deadlock</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 11: Full Table Scan -->
+      <!-- 3 threads, ramp-up 1s, loop 5 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 11 - Full Table Scan" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">5</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">3</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/full-table-scan" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="keyword" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">keyword</stringProp>
+                <stringProp name="Argument.value">cao cấp</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/full-table-scan</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- BUG 12: GC Pressure -->
+      <!-- 10 threads, ramp-up 3s, loop 50 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Bug 12 - GC Pressure" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">50</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">3</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/gc-pressure" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/gc-pressure</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- HEALTHY: Baseline API -->
+      <!-- 20 threads, ramp-up 5s, loop 100 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Healthy - Baseline" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">100</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">20</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/healthy" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/healthy</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- HEALTHY: Cached Baseline -->
+      <!-- 20 threads, ramp-up 5s, loop 100 -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Healthy - Cached Baseline" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">100</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">20</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /v1/api/lab/healthy-cached" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/healthy-cached</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ============================================ -->
+      <!-- RESET: Dọn dẹp sau khi test -->
+      <!-- 1 thread, 1 loop -->
+      <!-- ============================================ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="RESET - Cleanup" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /v1/api/lab/reset" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.path">/v1/api/lab/reset</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
