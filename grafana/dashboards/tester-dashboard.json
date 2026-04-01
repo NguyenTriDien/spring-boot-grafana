@@ -205,12 +205,12 @@
       }
     },
     {
-      "title": "Top 10 SQL Queries (DB Load %)",
+      "title": "Top 10 SQL Queries (DB CPU %)",
       "type": "table",
       "gridPos": {"x": 12, "y": 29, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "topk(10, (sum by (digest_text) (rate(mysql_perf_schema_events_statements_seconds_total{schema=\"demo_db\", digest_text!=\"\"}[1m]))) / sum(rate(mysql_perf_schema_events_statements_seconds_total{schema=\"demo_db\"}[1m])) * 100)",
+          "expr": "topk(10, (sum by (digest_text) (rate(mysql_perf_schema_events_statements_seconds_total{schema=\"demo_db\", digest_text!=\"\"}[1m]))) * 100)",
           "format": "table",
           "instant": true,
           "refId": "A"

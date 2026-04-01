@@ -70,3 +70,22 @@ INSERT INTO account_balances (account_name, balance) VALUES
 ('Charlie', 8000000.00),
 ('Diana', 3000000.00),
 ('Eve', 15000000.00);
+
+-- ================================================================
+-- CONFIGURATION FOR PERFORMANCE MONITORING
+-- ================================================================
+
+-- 1. Cấp quyền cho user exporter truy cập performance_schema
+GRANT SELECT ON performance_schema.* TO 'exporter'@'%';
+
+-- 2. Kích hoạt instruments để đo lường chi tiết CPU/Latency của từng câu SQL
+-- Điều này giúp biểu đồ "Top 10 Slowest SQL" và "DB CPU %" có dữ liệu
+UPDATE performance_schema.setup_instruments 
+SET ENABLED = 'YES', TIMED = 'YES' 
+WHERE NAME LIKE 'statement/sql/%';
+
+UPDATE performance_schema.setup_consumers 
+SET ENABLED = 'YES' 
+WHERE NAME LIKE 'events_statements_%';
+
+FLUSH PRIVILEGES;
