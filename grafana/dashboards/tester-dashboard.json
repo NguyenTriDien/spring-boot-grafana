@@ -191,7 +191,7 @@
       "gridPos": {"x": 0, "y": 29, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "topk(10, max by (digest_text) (mysql_perf_schema_events_statements_latency{schema=\"demo_db\", quantile=\"99\", digest_text!=\"\"}))",
+          "expr": "topk(10, max by (digest_text) (mysql_perf_schema_events_statements_latency{schema=\"demo_db\", quantile=\"99.0\", digest_text!=\"\"}))",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -210,7 +210,7 @@
       "gridPos": {"x": 12, "y": 29, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "topk(10, sum by (digest_text) (rate(mysql_perf_schema_events_statements_cpu_time_seconds_total{schema=\"demo_db\", digest_text!=\"\"}[5m])) * 100 > 0.001)",
+          "expr": "topk(10, sum by (digest_text) (rate(mysql_perf_schema_events_statements_cpu_time_seconds_total{schema=\"demo_db\", digest_text!=\"\"}[1m])) * 100)",
           "format": "table",
           "instant": true,
           "refId": "A"
