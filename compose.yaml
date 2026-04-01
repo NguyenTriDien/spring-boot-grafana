@@ -123,6 +123,7 @@ services:
       - mysqld-exporter
       - node-exporter
       - cadvisor
+      - telegraf
     networks:
       - demo-network
     mem_limit: 1g
@@ -221,6 +222,20 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     networks:
       - demo-network
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    restart: unless-stopped
+    ports:
+      - "9273:9273"
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - demo-network
+    mem_limit: 256m
+    cpus: 0.5
   # =========================
   # LOGGING STACK (ELK)
   # =========================

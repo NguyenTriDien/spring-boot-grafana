@@ -1,0 +1,83 @@
+{
+  "title": "Tester Overview",
+  "tags": ["tester", "performance", "overview"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "App CPU Usage (%)",
+      "type": "gauge",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 8},
+      "targets": [
+        {"expr": "process_cpu_usage{job=\"spring-boot-app\"} * 100", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 100,
+          "unit": "percent",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 80, "color": "red"}]}
+        }
+      }
+    },
+    {
+      "title": "App Heap RAM Usage (%)",
+      "type": "gauge",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 8},
+      "targets": [
+        {"expr": "(sum(jvm_memory_used_bytes{area=\"heap\"}) / sum(jvm_memory_max_bytes{area=\"heap\"})) * 100", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 100,
+          "unit": "percent",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 85, "color": "red"}]}
+        }
+      }
+    },
+    {
+      "title": "Database CPU Usage (%)",
+      "type": "gauge",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 8},
+      "targets": [
+        {"expr": "docker_container_cpu_usage_percent{container_name=\"demo-mysql\"}", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 100,
+          "unit": "percent",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "dark-green"}, {"value": 80, "color": "dark-red"}]}
+        }
+      }
+    },
+    {
+      "title": "Database RAM Usage (%)",
+      "type": "gauge",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 8},
+      "targets": [
+        {"expr": "docker_container_mem_usage_percent{container_name=\"demo-mysql\"}", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 100,
+          "unit": "percent",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "blue"}, {"value": 80, "color": "red"}]}
+        }
+      }
+    },
+    {
+      "title": "Database Connections",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "mysql_global_status_threads_connected", "legendFormat": "Connected/Active", "refId": "A"},
+        {"expr": "mysql_global_status_threads_running", "legendFormat": "Running/Pending", "refId": "B"},
+        {"expr": "mysql_global_variables_max_connections", "legendFormat": "Total Capacity", "refId": "C"}
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}
