@@ -143,7 +143,9 @@ services:
     depends_on:
       - mysql
     volumes:
-      - ./exporter-my.cnf:/etc/mysql/my.cnf:ro
+      - ./exporter-my.cnf:/root/.my.cnf:ro
+    command:
+      - "--config.my-cnf=/root/.my.cnf"
     networks:
       - demo-network
 
