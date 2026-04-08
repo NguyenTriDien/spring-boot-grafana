@@ -602,6 +602,8 @@ Trong thực tế, lỗi này thường xảy ra khi:
 | Panel | Biểu hiện |
 |-------|-----------|
 | **Database CPU Usage (%)** | 📈 Tăng vọt lên 100% (hoặc hơn tuỳ số core) |
+| **Top 10 SQL Queries (DB CPU %)** | 📈 Câu lệnh `SELECT BENCHMARK...` sẽ đứng đầu với giá trị CPU cao |
+| **Top 10 Slowest SQL Queries (P99 Latency)** | 📈 P99 latency của câu lệnh BENCHMARK sẽ tăng vọt (> 1.5 - 2s) |
 | **App CPU Usage (%)** | ⚖️ Rất thấp, vì App chỉ đứng đợi MySQL làm việc |
 | **API Response Time** | 📈 Tăng lên vài giây |
 
@@ -629,7 +631,8 @@ Trong thực tế, lỗi này thường xảy ra khi:
 | Panel | Biểu hiện |
 |-------|-----------|
 | **Database RAM Usage (%)** | 📈 Tăng vọt thành bậc thang, tạo đỉnh nhọn hoặc giữ neo cao tuỳ cấu hình MySQL |
-| **App Heap RAM Usage (%)** | ⚖️ Rất thấp, vì database gánh toàn bộ dữ liệu |
+| **Top 10 SQL Queries (DB CPU %)** | 📈 Tăng nhẹ (do overhead RAM allocation và sort tầng DB) |
+| **App Heap RAM Usage (%)** | ⚖️ Rất thấp, vì database gánh toàn bộ dữ liệu, chỉ trả về 1 số COUNT |
 | **Database CPU Usage (%)** | 📈 Tăng nhẹ (do overhead RAM allocation) |
 
 ### 🧪 Cách test bằng JMeter
