@@ -15,12 +15,10 @@ services:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - demo-network
-    # Tăng lên 600MB để MySQL xử lý Query nhanh hơn khi test performance
     mem_limit: 600m
-    memswap_limit: 800m
-    cpus: 0.5
-    # Tăng Buffer Pool để giữ data trong RAM nhiều hơn
-    command: --innodb-buffer-pool-size=256M --max_connections=100
+    memswap_limit: 700m
+    cpus: 0.6
+    command: --innodb-buffer-pool-size=256M --max_connections=50
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
@@ -30,13 +28,17 @@ services:
     image: redis:7-alpine
     container_name: demo-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 100mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     networks:
       - demo-network
-    mem_limit: 100m
-    cpus: 0.2
+    mem_limit: 150m
+    cpus: 0.3
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      retries: 5
 
   redisinsight:
     image: redis/redisinsight:latest
@@ -48,7 +50,7 @@ services:
       - redis
     networks:
       - demo-network
-    mem_limit: 150m
+    mem_limit: 100m
     cpus: 0.2
 
   app:
@@ -61,13 +63,18 @@ services:
       SPRING_DATASOURCE_PASSWORD: demo_password
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: false # Tắt log SQL để đỡ tốn CPU khi test tải
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
-      # Cấu hình JVM tối ưu cho RAM 800MB
-      JAVA_OPTS: "-Xms400m -Xmx600m"
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: always
+      MANAGEMENT_METRICS_DISTRIBUTION_PERCENTILES_HTTP_SERVER_REQUESTS: 0.9,0.95,0.99
+      # LOGSTASH_HOST: logstash   # ❌ BỎ ELK
+      # LOGSTASH_PORT: 5000       # ❌ BỎ ELK
     depends_on:
       mysql:
         condition: service_healthy
+      # logstash:                 # ❌ BỎ ELK
+      #   condition: service_started
       redis:
         condition: service_healthy
     networks:
@@ -77,9 +84,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    # Ưu tiên RAM lớn nhất cho App để tránh Garbage Collection liên tục
-    mem_limit: 800m
-    cpus: 0.8
+      start_period: 60s
+    mem_limit: 500m
+    cpus: 0.7
 
   prometheus:
     image: prom/prometheus:latest
@@ -91,14 +98,18 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=12h' # Giảm thời gian lưu để đỡ tốn RAM/Disk
+      - '--storage.tsdb.retention.time=12h'
       - '--web.enable-lifecycle'
     depends_on:
       - app
+      - redis-exporter
+      - mysqld-exporter
+      - node-exporter
+      - cadvisor
     networks:
       - demo-network
-    mem_limit: 250m
-    cpus: 0.3
+    mem_limit: 300m
+    cpus: 0.4
 
   grafana:
     image: grafana/grafana:latest
@@ -107,6 +118,7 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: false
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -116,7 +128,7 @@ services:
     networks:
       - demo-network
     mem_limit: 200m
-    cpus: 0.2
+    cpus: 0.3
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -125,6 +137,7 @@ services:
     networks:
       - demo-network
     mem_limit: 50m
+    cpus: 0.1
 
   mysqld-exporter:
     image: prom/mysqld-exporter:latest
@@ -138,7 +151,21 @@ services:
       - "--config.my-cnf=/etc/mysql/my.cnf"
     networks:
       - demo-network
+    mem_limit: 100m
+    cpus: 0.2
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - demo-network
     mem_limit: 50m
+    cpus: 0.1
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -152,8 +179,55 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - demo-network
-    mem_limit: 200m # Giới hạn lại vì cadvisor rất ngốn RAM
+    mem_limit: 100m
     cpus: 0.2
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    restart: unless-stopped
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - demo-network
+    mem_limit: 100m
+    cpus: 0.2
+
+  # ================= ELK STACK (ĐÃ TẮT) =================
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.17.22
+  #   container_name: elasticsearch
+  #   environment:
+  #     discovery.type: single-node
+  #     ES_JAVA_OPTS: "-Xms256m -Xmx256m"
+  #   volumes:
+  #     - es_data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - demo-network
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:7.17.22
+  #   container_name: kibana
+  #   environment:
+  #     ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - demo-network
+
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:7.17.22
+  #   container_name: logstash
+  #   volumes:
+  #     - ./logstash/pipeline:/usr/share/logstash/pipeline
+  #   environment:
+  #     LS_JAVA_OPTS: "-Xms128m -Xmx128m"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - demo-network
+  # ====================================================
 
   nginx:
     image: nginx:latest
@@ -167,16 +241,12 @@ services:
     depends_on:
       - app
       - grafana
+      # - kibana   # ❌ BỎ ELK
       - redisinsight
     networks:
       - demo-network
-    mem_limit: 64m
-    cpus: 0.2
-
-# --- Cụm ELK đã comment để tiết kiệm RAM ---
-# elasticsearch: ... (giữ nguyên comment của bạn)
-# kibana: ... (giữ nguyên comment của bạn)
-# logstash: ... (giữ nguyên comment của bạn)
+    mem_limit: 50m
+    cpus: 0.1
 
 volumes:
   mysql_data:
