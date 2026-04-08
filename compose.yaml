@@ -10,8 +10,6 @@ services:
       MYSQL_DATABASE: demo_db
       MYSQL_USER: demo_user
       MYSQL_PASSWORD: demo_password
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -30,8 +28,6 @@ services:
     image: redis:7-alpine
     container_name: demo-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     command: redis-server --appendonly yes --maxmemory 50mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
@@ -48,8 +44,6 @@ services:
     image: redis/redisinsight:latest
     container_name: demo-redisinsight
     restart: unless-stopped
-    ports:
-      - "9001:5540"
     volumes:
       - redisinsight_data:/data
     depends_on:
@@ -63,8 +57,6 @@ services:
     build: .
     container_name: demo-app
     restart: unless-stopped
-    ports:
-      - "8082:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/demo_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: demo_user
@@ -124,16 +116,12 @@ services:
     image: grafana/grafana:latest
     container_name: demo-grafana
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin123
       GF_USERS_ALLOW_SIGN_UP: false
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
     networks:
@@ -145,53 +133,35 @@ services:
     image: prom/node-exporter:latest
     container_name: node-exporter
     restart: unless-stopped
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
     networks:
       - demo-network
-    mem_limit: 50m
-    cpus: 0.1
 
   mysqld-exporter:
     image: prom/mysqld-exporter:latest
     container_name: mysql-exporter
     restart: unless-stopped
-    ports:
-      - "9104:9104"
     depends_on:
       - mysql
     volumes:
       - ./exporter-my.cnf:/etc/mysql/my.cnf:ro
     networks:
       - demo-network
-    mem_limit: 50m
-    cpus: 0.1
 
   redis-exporter:
     image: oliver006/redis_exporter:latest
     container_name: redis-exporter
     restart: unless-stopped
-    ports:
-      - "9121:9121"
     environment:
       REDIS_ADDR: redis://redis:6379
     depends_on:
       - redis
     networks:
       - demo-network
-    mem_limit: 50m
-    cpus: 0.1
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
-    ports:
-      - "8081:8080"
     privileged: true
     volumes:
       - /:/rootfs:ro
@@ -200,31 +170,23 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - demo-network
-    mem_limit: 100m
-    cpus: 0.2
 
   telegraf:
     image: telegraf:latest
     container_name: telegraf
     restart: unless-stopped
-    ports:
-      - "9273:9273"
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - demo-network
-    mem_limit: 100m
-    cpus: 0.2
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.22
     container_name: elasticsearch
     environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
-    ports:
-      - "9200:9200"
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms256m -Xmx256m"
     volumes:
       - es_data:/usr/share/elasticsearch/data
     networks:
@@ -235,10 +197,8 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.22
     container_name: kibana
-    ports:
-      - "5601:5601"
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:
       - elasticsearch
     networks:
@@ -249,12 +209,10 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:7.17.22
     container_name: logstash
-    ports:
-      - "5000:5000"
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     environment:
-      - LS_JAVA_OPTS=-Xms128m -Xmx128m
+      LS_JAVA_OPTS: "-Xms128m -Xmx128m"
     depends_on:
       - elasticsearch
     networks:
