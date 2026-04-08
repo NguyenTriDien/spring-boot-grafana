@@ -5,8 +5,6 @@ services:
     image: mysql:8.0
     container_name: demo-mysql
     restart: unless-stopped
-#    ports:
-#      - "3306:3306" # Đã thêm: Mở port ra internet để kết nối từ xa
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: demo_db
@@ -17,10 +15,10 @@ services:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - demo-network
-    mem_limit: 350m
-    memswap_limit: 400m
-    cpus: 0.4
-    command: --innodb-buffer-pool-size=96M --max_connections=30
+    mem_limit: 500m  # Đã nới lỏng RAM
+    memswap_limit: 600m
+    cpus: 0.5
+    command: --innodb-buffer-pool-size=128M --max_connections=50
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
@@ -70,13 +68,15 @@ services:
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: always
       MANAGEMENT_METRICS_DISTRIBUTION_PERCENTILES_HTTP_SERVER_REQUESTS: 0.9,0.95,0.99
-      LOGSTASH_HOST: logstash
-      LOGSTASH_PORT: 5000
+      # Đã comment Logstash để App không gửi log sang nữa
+      # LOGSTASH_HOST: logstash
+      # LOGSTASH_PORT: 5000
     depends_on:
       mysql:
         condition: service_healthy
-      logstash:
-        condition: service_started
+      # Đã comment phụ thuộc vào logstash
+      # logstash:
+      #   condition: service_started
       redis:
         condition: service_healthy
     networks:
@@ -87,8 +87,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    mem_limit: 300m
-    cpus: 0.5
+    mem_limit: 500m # Đã nới lỏng RAM
+    cpus: 0.8
 
   prometheus:
     image: prom/prometheus:latest
@@ -124,8 +124,8 @@ services:
       GF_USERS_ALLOW_SIGN_UP: false
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning # Đã thêm: Load cấu hình Provider
-      - ./grafana/dashboards:/var/lib/grafana/dashboards # Đã thêm: Load file JSON
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
     networks:
@@ -146,12 +146,10 @@ services:
     restart: unless-stopped
     depends_on:
       - mysql
-    # --- Thay đổi ở đây ---
     volumes:
       - ./exporter-my.cnf:/etc/mysql/my.cnf:ro
     command:
       - "--config.my-cnf=/etc/mysql/my.cnf"
-    # ----------------------
     networks:
       - demo-network
 
@@ -189,45 +187,6 @@ services:
     networks:
       - demo-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.22
-    container_name: elasticsearch
-    environment:
-      discovery.type: single-node
-      ES_JAVA_OPTS: "-Xms256m -Xmx256m"
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    networks:
-      - demo-network
-    mem_limit: 300m
-    cpus: 0.5
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.22
-    container_name: kibana
-    environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - demo-network
-    mem_limit: 150m
-    cpus: 0.3
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.17.22
-    container_name: logstash
-    volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-    environment:
-      LS_JAVA_OPTS: "-Xms128m -Xmx128m"
-    depends_on:
-      - elasticsearch
-    networks:
-      - demo-network
-    mem_limit: 200m
-    cpus: 0.3
-
   nginx:
     image: nginx:latest
     container_name: demo-nginx
@@ -235,17 +194,59 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - app
       - grafana
-      - kibana
+      # Đã comment phụ thuộc vào kibana
+      # - kibana
       - redisinsight
     networks:
       - demo-network
     mem_limit: 50m
     cpus: 0.1
+
+  # ==========================================
+  # LOGGING STACK (ELK) - TẠM THỜI COMMENT ĐỂ TIẾT KIỆM RAM
+  # ==========================================
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.17.22
+  #   container_name: elasticsearch
+  #   environment:
+  #     discovery.type: single-node
+  #     ES_JAVA_OPTS: "-Xms256m -Xmx256m"
+  #   volumes:
+  #     - es_data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - demo-network
+  #   mem_limit: 300m
+  #   cpus: 0.5
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:7.17.22
+  #   container_name: kibana
+  #   environment:
+  #     ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - demo-network
+  #   mem_limit: 150m
+  #   cpus: 0.3
+
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:7.17.22
+  #   container_name: logstash
+  #   volumes:
+  #     - ./logstash/pipeline:/usr/share/logstash/pipeline
+  #   environment:
+  #     LS_JAVA_OPTS: "-Xms128m -Xmx128m"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - demo-network
+  #   mem_limit: 200m
+  #   cpus: 0.3
 
 volumes:
   mysql_data:
@@ -253,7 +254,7 @@ volumes:
   prometheus_data:
   grafana_data:
   redisinsight_data:
-  es_data:
+  # es_data: # Comment luôn volume của ES
 
 networks:
   demo-network:
