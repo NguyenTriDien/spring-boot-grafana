@@ -5,6 +5,8 @@ services:
     image: mysql:8.0
     container_name: demo-mysql
     restart: unless-stopped
+#    ports:
+#      - "3306:3306" # Đã thêm: Mở port ra internet để kết nối từ xa
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: demo_db
@@ -122,6 +124,8 @@ services:
       GF_USERS_ALLOW_SIGN_UP: false
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning # Đã thêm: Load cấu hình Provider
+      - ./grafana/dashboards:/var/lib/grafana/dashboards # Đã thêm: Load file JSON
     depends_on:
       - prometheus
     networks:
@@ -143,6 +147,7 @@ services:
     depends_on:
       - mysql
     environment:
+      # Vì init.sql của bạn đã tạo user 'exporter' rất chuẩn xác nên phần này giữ nguyên
       - DATA_SOURCE_NAME=exporter:exporter_password@(mysql:3306)/
     networks:
       - demo-network
