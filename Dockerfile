@@ -16,9 +16,8 @@ COPY target/learn-performance-test-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # ===== JVM TỐI ƯU CHO VPS 3GB =====
-ENV JAVA_OPTS="-Xms128m -Xmx256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENV JAVA_OPTS="-Xms128m -Xmx256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxGCPauseMillis=200"
 
-# Cài curl gọn nhẹ hơn
 RUN apt-get update && apt-get install -y curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
