@@ -20,12 +20,6 @@ public class MerchantController {
 
     @PostMapping
     public ResponseEntity<MerchantDto> create(@RequestBody MerchantRequest request) {
-       try {
-           Thread.sleep(ThreadLocalRandom.current().nextInt(200, 700));
-         } catch (InterruptedException e) {
-              throw new RuntimeException(e);
-       }
-
         return ResponseEntity.ok(merchantService.create(request));
     }
 
