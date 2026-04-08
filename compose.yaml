@@ -146,9 +146,12 @@ services:
     restart: unless-stopped
     depends_on:
       - mysql
-    environment:
-      # Vì init.sql của bạn đã tạo user 'exporter' rất chuẩn xác nên phần này giữ nguyên
-      - DATA_SOURCE_NAME=exporter:exporter_password@(mysql:3306)/
+    # --- Thay đổi ở đây ---
+    volumes:
+      - ./exporter-my.cnf:/etc/mysql/my.cnf:ro
+    command:
+      - "--config.my-cnf=/etc/mysql/my.cnf"
+    # ----------------------
     networks:
       - demo-network
 
